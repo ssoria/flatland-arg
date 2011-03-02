@@ -84,7 +84,7 @@ class Environment(pb.Cacheable, pb.RemoteCache):
     def paint(self, screen):
         for playerId in self.players:
             p = self.players[playerId]
-            p.paint(screen, p.position)
+            p.paint(screen, p.position, ((not self.team) or (p.team == self.team)))
         for bid in self.buildings:
             b = self.buildings[bid]
             if not (self.team and b.team and b.team != self.team):

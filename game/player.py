@@ -38,8 +38,11 @@ class Player(pb.Cacheable, pb.RemoteCache):
         for o in self.observers: o.callRemote('hit')
     observe_hit = _hit
 
-    def paint(self, screen, position):
+    def paint(self, screen, position, isTeammate):
         pygame.draw.circle(screen, (255, 255, 255), position, 50)
+
+        if not isTeammate:
+            return
 
         i = 0
         while i < self.resources:
