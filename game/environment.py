@@ -49,7 +49,14 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         del self.buildings[bid]
 
     def attack(self, player, dt):
-        print "Player ", id(player), " attacked with strength ", dt
+        distance = min(player.sides, dt / 2) * 50
+        print "Player ", id(player), " attacked with strength ", distance
+        for p in self.players.itervalues():
+            if (p.team != player.team) and (p.position - player.position).length < distance:
+                p.hit()
+        for b in self.buildings.values():
+            if (b.position - player.position).length < distance:
+                self.buildingComplete(None, b)
 
     def startBuilding(self, player):
         building = None
