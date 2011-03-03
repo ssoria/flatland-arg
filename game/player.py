@@ -2,12 +2,13 @@ import pygame
 import pygame.gfxdraw
 from twisted.internet import defer
 from twisted.spread import pb
+from vector import Vector2D
 
 class Player(pb.Cacheable, pb.RemoteCache):
     def __init__(self):
         #pb.Cacheable.__init__(self)
         #pb.RemoteCache.__init__(self)
-        self.position = (0, 0)
+        self.position = Vector2D(0, 0)
         self.sides = 3
         self.resources = 0
         self.observers = []
@@ -70,10 +71,10 @@ pb.setUnjellyableForClass(Player, Player)
 def buildingFactory(sides):
     if sides < 3:
         return None
-    else:
+    elif sides == 3:
         return Trap()
-#    elif sides == 4:
-#        return Sentry()
+    else:
+        return Sentry()
 #    else:
 #        return PolyFactor()
 
@@ -144,6 +145,26 @@ class Trap(Building):
         player.hit()
 
 pb.setUnjellyableForClass(Trap, Trap)
+
+class Sentry(Building):
+    def __init__(self):
+        Building.__init__(self)
+        self.sides = 4
+        self.size = 150
+
+    def paint(self, screen, position):
+        pygame.gfxdraw.filled_circle(screen, position.x, position.y, self.size, pygame.Color(255, 255, 0, 150))
+
+    def build(self, player):
+        pass
+
+    def addBuilder(self, player):
+        pass
+
+    def removeBuilder(self, player):
+        pass
+
+pb.setUnjellyableForClass(Sentry, Sentry)
 
 
 class ResourcePool(pb.Copyable, pb.RemoteCopy):

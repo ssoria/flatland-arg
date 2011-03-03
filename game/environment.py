@@ -1,5 +1,5 @@
 from vector import Vector2D
-from game.player import Player, ResourcePool, Building, Trap
+from game.player import Player, ResourcePool, Building, Trap, Sentry
 from twisted.spread import pb
 from twisted.internet.task import LoopingCall
 
@@ -7,10 +7,9 @@ class Environment(pb.Cacheable, pb.RemoteCache):
     def __init__(self):
         self.observers = []
         self.players = {}
-        rp = ResourcePool(100)
-        rp.position = Vector2D(800, 480) / 2
-        rp.team = None
-        self.buildings = {id(rp) : rp}
+        self.rp = ResourcePool(100)
+        self.rp.position = Vector2D(800, 480) / 2
+        self.buildings = {}
         self.team = None
 
     def createPlayer(self, team):
@@ -60,12 +59,14 @@ class Environment(pb.Cacheable, pb.RemoteCache):
 
     def startBuilding(self, player):
         building = None
-        for bid in self.buildings:
-            b = self.buildings[bid]
-            if (b.position - player.position).length < b.size:
+        for b in self.buildings.itervalues():
+            if (player.team == b.team) and (b.position - player.position).length < b.size:
                 building = b
         if not building:
-            building = self.createBuilding(player.team, player.position)
+            if (self.rp.position - player.position).length < self.rp.size:
+                building = self.rp
+            else:
+                building = self.createBuilding(player.team, player.position)
         building.addBuilder(player)
         player.action = LoopingCall(building.build, player)
         player.action.start(2, False).addCallback(lambda ign: building.removeBuilder(player))
@@ -78,8 +79,7 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         player.position = position
         for o in self.observers: o.callRemote('updatePlayerPosition', id(player), position)
 
-        for bid in self.buildings:
-            b = self.buildings[bid]
+        for b in self.buildings.itervalues():
             if isinstance(b, Trap) and (b.team != player.team) and ((b.position - player.position).length < b.size):
                 b.trigger(player)
                 del self.buildings[bid]
@@ -88,14 +88,23 @@ class Environment(pb.Cacheable, pb.RemoteCache):
     def observe_updatePlayerPosition(self, playerId, position):
         self.players[playerId].position = position
 
+    def isVisible(self, entity):
+        if not self.team:
+            return True
+        if self.team == entity.team:
+            return True
+        for b in self.buildings.itervalues():
+            if isinstance(b, Sentry) and (b.team == self.team) and (entity.position - b.position).length < b.size:
+                return True
+        return False
+
     def paint(self, screen):
-        for playerId in self.players:
-            p = self.players[playerId]
-            p.paint(screen, p.position, ((not self.team) or (p.team == self.team)))
-        for bid in self.buildings:
-            b = self.buildings[bid]
-            if not (self.team and b.team and b.team != self.team):
+        for p in self.players.itervalues():
+            p.paint(screen, p.position, self.isVisible(p))
+        for b in self.buildings.itervalues():
+            if self.isVisible(b):
                 b.paint(screen, b.position)
+        self.rp.paint(screen, self.rp.position)
 
     # pb.Cacheable stuff
     def getStateToCacheAndObserveFor(self, perspective, observer):
