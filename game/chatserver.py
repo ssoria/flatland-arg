@@ -27,12 +27,14 @@ class GameRealm:
         assert pb.IPerspective in interfaces
         assert avatarId is checkers.ANONYMOUS
         avatar = GameAvatar(self.environment, self._getTeam())
-        return pb.IPerspective, avatar, lambda: None
+        return pb.IPerspective, avatar, avatar.disconnect
 
 class GameAvatar(pb.Avatar):
     def __init__(self, environment, team):
         self.environment = environment
         self.player = self.environment.createPlayer(team)
+    def disconnect(self):
+        self.environment.removePlayer(self.player)
     def perspective_attack(self, dt):
         self.environment.attack(self.player, dt)
     def perspective_startBuilding(self):

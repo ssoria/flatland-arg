@@ -22,6 +22,13 @@ class Environment(pb.Cacheable, pb.RemoteCache):
     def observe_createPlayer(self, playerId, player):
         self.players[playerId] = player
 
+    def removePlayer(self, player):
+        pid = id(player)
+        del self.players[pid]
+        for o in self.observers: o.callRemote('removePlayer', pid)
+    def observe_removePlayer(self, pid):
+        del self.players[pid]
+
     def createBuilding(self, team, position):
         building = Building()
         building.team = team
