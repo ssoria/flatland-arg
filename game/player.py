@@ -39,6 +39,14 @@ class Player(pb.Cacheable, pb.RemoteCache):
         for o in self.observers: o.callRemote('hit')
     observe_hit = _hit
 
+    def _levelUp(self):
+        self.resources = 0
+        self.sides += 1
+    def levelUp(self):
+        self._levelUp()
+        for o in self.observers: o.callRemote('levelUp')
+    observe_levelUp = _levelUp
+
     def paint(self, screen, position, isTeammate):
         pygame.draw.circle(screen, (255, 255, 255), position, 50)
 
@@ -73,10 +81,10 @@ def buildingFactory(sides):
         return None
     elif sides == 3:
         return Trap()
-    else:
+    elif sides == 4:
         return Sentry()
-#    else:
-#        return PolyFactor()
+    else:
+        return PolyFactory()
 
 class Building(pb.Cacheable, pb.RemoteCache):
     def __init__(self):
@@ -92,14 +100,10 @@ class Building(pb.Cacheable, pb.RemoteCache):
             return
         player.loseResource()
         self.resources += 1
-        if self.resources < 5:
-            for o in self.observers: o.callRemote('gainResource')
-        else:
-            for p in self.builders:
-                self.removeBuilder(p)
+        for o in self.observers: o.callRemote('setResources', self.resources)
 
-    def observe_gainResource(self):
-        self.resources += 1
+    def observe_setResources(self, r):
+        self.resources = r
 
     def paint(self, screen, position):
         pygame.gfxdraw.filled_circle(screen, position.x, position.y, self.size, pygame.Color(255, 0, 0, (255 * (self.resources + 1)) / 7))
@@ -166,6 +170,23 @@ class Sentry(Building):
 
 pb.setUnjellyableForClass(Sentry, Sentry)
 
+class PolyFactory(Building):
+    def __init__(self):
+        Building.__init__(self)
+        self.sides = 5
+        self.size = 150
+
+    def paint(self, screen, position):
+        pygame.gfxdraw.filled_circle(screen, position.x, position.y, self.size, pygame.Color(255, 0, 255, 150))
+
+    def removeBuilder(self, player):
+        self.builders.remove(player)
+        if not self.builders and self.resources >= player.sides:
+            self.resources = 0
+            for o in self.observers: o.callRemote('setResources', self.resources)
+            player.levelUp()
+
+pb.setUnjellyableForClass(PolyFactory, PolyFactory)
 
 class ResourcePool(pb.Copyable, pb.RemoteCopy):
     def __init__(self, size):
