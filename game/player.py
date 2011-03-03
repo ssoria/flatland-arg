@@ -125,6 +125,10 @@ class Building(pb.Cacheable, pb.RemoteCache):
         if not self.builders:
             self.deferred.callback(buildingFactory(self.resources))
 
+    def hit(self):
+        if self.sides:
+            return buildingFactory(self.sides - 1)
+
 pb.setUnjellyableForClass(Building, Building)
 
 class Trap(Building):

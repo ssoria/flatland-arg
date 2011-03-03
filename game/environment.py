@@ -55,7 +55,7 @@ class Environment(pb.Cacheable, pb.RemoteCache):
                 p.hit()
         for b in self.buildings.values():
             if (b.position - player.position).length < distance:
-                self.buildingComplete(None, b)
+                self.buildingComplete(b.hit(), b)
 
     def startBuilding(self, player):
         building = None
