@@ -104,6 +104,10 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         for b in self.buildings.itervalues():
             if isinstance(b, Sentry) and (b.team == self.team) and (entity.position - b.position).length < b.size:
                 return True
+        for p in self.players.itervalues():
+            if (self.team == p.team):
+                if (entity.position - p.position).length < p.getScanRadius():
+                    return True
         return False
 
     def paint(self, screen):

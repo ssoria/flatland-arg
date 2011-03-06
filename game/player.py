@@ -1,8 +1,10 @@
+import math
 import pygame
 import pygame.gfxdraw
 from twisted.internet import defer
 from twisted.spread import pb
 from vector import Vector2D
+from twisted.internet import reactor
 
 class Player(pb.Cacheable, pb.RemoteCache):
     def __init__(self):
@@ -12,6 +14,33 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self.sides = 3
         self.resources = 0
         self.observers = []
+        self.scanning = 0
+        self.size = 50
+
+    def _startScanning(self):
+        self.scanning = pygame.time.get_ticks()
+    def startScanning(self):
+        self._startScanning()
+        for o in self.observers: o.callRemote('startScanning')
+    observe_startScanning = _startScanning
+
+    def _finishScanning(self):
+        # scanning turns negative while effect lingers
+        self.scanning -= pygame.time.get_ticks()
+        def resetScanTime():
+            self.scanning = 0
+        reactor.callLater(5, resetScanTime)
+    def finishScanning(self):
+        self._finishScanning()
+        for o in self.observers: o.callRemote('finishScanning')
+    observe_finishScanning = _finishScanning
+
+    def getScanRadius(self):
+        if (self.scanning < 0):
+            dt = -self.scanning / 2000.0
+        else:
+            dt = (pygame.time.get_ticks() - self.scanning) / 2000.0
+        return math.sqrt(dt) * self.size
 
     def _gainResource(self):
         if self.resources < self.sides:
@@ -52,6 +81,9 @@ class Player(pb.Cacheable, pb.RemoteCache):
 
         if not isTeammate:
             return
+
+        if self.scanning:
+            pygame.gfxdraw.filled_circle(screen, position.x, position.y, self.getScanRadius(), pygame.Color(255, 0, 255, 150))
 
         i = 0
         while i < self.resources:
