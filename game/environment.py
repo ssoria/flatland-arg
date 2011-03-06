@@ -89,6 +89,7 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         for b in self.buildings.itervalues():
             if isinstance(b, Trap) and (b.team != player.team) and ((b.position - player.position).length < b.size):
                 b.trigger(player)
+                bid = id(b)
                 del self.buildings[bid]
                 for o in self.observers: o.callRemote('destroyBuilding', bid)
                 break
