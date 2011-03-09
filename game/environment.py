@@ -9,8 +9,8 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         self.players = {}
         self.rp = ResourcePool(100)
         self.rp.position = Vector2D(0, 0)
-        self.width = 40.0
-        self.height = 20.0
+        self.width = 80.0
+        self.height = 40.0
         self.buildings = {}
         self.team = None
 
