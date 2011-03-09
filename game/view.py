@@ -2,6 +2,7 @@ import pygame
 
 from twisted.python.filepath import FilePath
 from twisted.internet.task import LoopingCall
+from vector import Vector2D
 
 
 def loadImage(path):
@@ -56,8 +57,22 @@ class Window(object):
         this Window.
         """
         self.screen.fill((0, 0, 0))
-        self.environment.paint(self.screen)
+        self.environment.paint(self)
         pygame.display.flip()
+
+    def worldCoord(self, p):
+        width = self.screen.get_width()
+        height = self.screen.get_height()
+        (cx, cy) = self.screen.get_rect().center
+        return Vector2D(((p.x - cx) * self.environment.width) / width,
+                        ((p.y - cy) * self.environment.height) / height)
+
+    def screenCoord(self, p):
+        width = self.screen.get_width()
+        height = self.screen.get_height()
+        (cx, cy) = self.screen.get_rect().center
+        return Vector2D(((p.x * width) / self.environment.width) + cx,
+                        ((p.y * height) / self.environment.height) + cy)
 
 
     def start(self, title):

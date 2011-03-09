@@ -27,7 +27,7 @@ class Client():
         self.environment.team = yield perspective.callRemote('getTeam')
         self.view = Window(self.environment)
         self.view.start("Client - %d" % (self.environment.team, ))
-        self.controller = PlayerController(self.perspective)
+        self.controller = PlayerController(self.perspective, self.view)
         self.controller.go()
 
     def shutdown(self, result):

@@ -27,10 +27,11 @@ class PlayerController(object):
     """
     _actions = set([ATTACK, SCAN, BUILD])
     
-    def __init__(self, perspective):
+    def __init__(self, perspective, view):
         self.perspective = perspective
         self.position = Vector2D(0, 0)
-        self.speed = 100
+        self.speed = 5
+        self.view = view
         self._actionQueue = []
         self._currentAction = None
 
@@ -49,7 +50,7 @@ class PlayerController(object):
     def _updatePosition(self, dt):
         if not pygame.mouse.get_focused():
             return
-        destination = Vector2D(pygame.mouse.get_pos())
+        destination = self.view.worldCoord(Vector2D(pygame.mouse.get_pos()))
         direction = destination - self.position
         if direction.length > (self.speed * dt):
             self.position += ((dt * self.speed) * direction) / direction.length

@@ -8,7 +8,9 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         self.observers = []
         self.players = {}
         self.rp = ResourcePool(100)
-        self.rp.position = Vector2D(800, 480) / 2
+        self.rp.position = Vector2D(0, 0)
+        self.width = 40.0
+        self.height = 20.0
         self.buildings = {}
         self.team = None
 
@@ -110,13 +112,13 @@ class Environment(pb.Cacheable, pb.RemoteCache):
                     return True
         return False
 
-    def paint(self, screen):
+    def paint(self, view):
         for p in self.players.itervalues():
-            p.paint(screen, p.position, self.isVisible(p))
+            p.paint(view.screen, view.screenCoord(p.position), self.isVisible(p))
         for b in self.buildings.itervalues():
             if self.isVisible(b):
-                b.paint(screen, b.position)
-        self.rp.paint(screen, self.rp.position)
+                b.paint(view.screen, view.screenCoord(b.position))
+        self.rp.paint(view.screen, view.screenCoord(self.rp.position))
 
     # pb.Cacheable stuff
     def getStateToCacheAndObserveFor(self, perspective, observer):
