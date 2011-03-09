@@ -16,6 +16,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self.observers = []
         self.scanning = 0
         self.size = 1
+        self.action = None
 
     def _startScanning(self):
         self.scanning = pygame.time.get_ticks()

@@ -12,7 +12,7 @@ class Vector2D(pb.Copyable, pb.RemoteCopy):
 
     @property
     def length(self):
-        return math.sqrt(self.x * self.x + self.y * self.y)
+        return math.sqrt(self._lengthSquared())
 
     def __getitem__(self, n):
         if n:
@@ -21,6 +21,12 @@ class Vector2D(pb.Copyable, pb.RemoteCopy):
 
     def __len__(self):
         return 2
+
+    def _lengthSquared(self):
+        return (self.x * self.x) + (self.y * self.y)
+
+    def __lt__(self, other):
+        return self._lengthSquared() < (other * other)
 
     def __mul__(self, m):
         return Vector2D((self.x * m, self.y * m))

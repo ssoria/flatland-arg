@@ -52,10 +52,10 @@ class PlayerController(object):
             return
         destination = self.view.worldCoord(Vector2D(pygame.mouse.get_pos()))
         direction = destination - self.position
-        if direction.length > (self.speed * dt):
-            self.position += ((dt * self.speed) * direction) / direction.length
-        else:
+        if direction < (self.speed * dt):
             self.position = destination
+        else:
+            self.position += (dt * self.speed) * direction.norm()
         self.perspective.callRemote('updatePosition', self.position)
 
 

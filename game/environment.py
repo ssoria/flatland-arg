@@ -32,6 +32,11 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         del self.players[pid]
 
     def createBuilding(self, team, position):
+        if (self.rp.position - position) < 6:
+            return None
+        for b in self.buildings.itervalues():
+            if (team == b.team) and (b.position - position) < 6:
+                return None
         building = Building()
         building.team = team
         building.position = position
@@ -60,22 +65,24 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         distance = min(player.sides, dt / 2) * 50
         print "Player ", id(player), " attacked with strength ", distance
         for p in self.players.itervalues():
-            if (p.team != player.team) and (p.position - player.position).length < distance:
+            if (p.team != player.team) and (p.position - player.position) < distance:
                 p.hit()
         for b in self.buildings.values():
-            if (b.position - player.position).length < distance:
+            if (b.position - player.position) < distance:
                 self.buildingComplete(b.hit(), b)
 
     def startBuilding(self, player):
         building = None
         for b in self.buildings.itervalues():
-            if (player.team == b.team) and (b.position - player.position).length < b.size:
+            if (player.team == b.team) and (b.position - player.position) < 3:
                 building = b
         if not building:
-            if (self.rp.position - player.position).length < self.rp.size:
+            if (self.rp.position - player.position) < 3:
                 building = self.rp
             else:
                 building = self.createBuilding(player.team, player.position)
+                if not building:
+                    return
         building.addBuilder(player)
         player.action = LoopingCall(building.build, player)
         player.action.start(2, False).addCallback(lambda ign: building.removeBuilder(player))
@@ -83,13 +90,14 @@ class Environment(pb.Cacheable, pb.RemoteCache):
     def finishBuilding(self, player):
         if player.action:
             player.action.stop()
+            player.action = None
 
     def updatePlayerPosition(self, player, position):
         player.position = position
         for o in self.observers: o.callRemote('updatePlayerPosition', id(player), position)
 
         for b in self.buildings.itervalues():
-            if isinstance(b, Trap) and (b.team != player.team) and ((b.position - player.position).length < b.size):
+            if isinstance(b, Trap) and (b.team != player.team) and ((b.position - player.position) < b.size):
                 b.trigger(player)
                 bid = id(b)
                 del self.buildings[bid]
@@ -104,11 +112,11 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         if self.team == entity.team:
             return True
         for b in self.buildings.itervalues():
-            if isinstance(b, Sentry) and (b.team == self.team) and (entity.position - b.position).length < b.size:
+            if isinstance(b, Sentry) and (b.team == self.team) and (entity.position - b.position) < b.size:
                 return True
         for p in self.players.itervalues():
             if (self.team == p.team):
-                if (entity.position - p.position).length < p.getScanRadius():
+                if (entity.position - p.position) < p.getScanRadius():
                     return True
         return False
 
