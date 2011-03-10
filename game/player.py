@@ -72,7 +72,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
     def _gainResource(self):
         if self.sides < 3:
             self.sides += 1
-        if self.resources < self.sides:
+        elif self.resources < self.sides:
             self.resources += 1
     def gainResource(self):
         self._gainResource()
