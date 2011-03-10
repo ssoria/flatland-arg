@@ -68,6 +68,8 @@ class Player(pb.Cacheable, pb.RemoteCache):
         return math.sqrt(dt) * self.size
 
     def _gainResource(self):
+        if self.sides < 3:
+            self.sides += 1
         if self.resources < self.sides:
             self.resources += 1
     def gainResource(self):
