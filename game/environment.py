@@ -94,7 +94,7 @@ class Environment(pb.Cacheable, pb.RemoteCache):
                 b.upgrading = player
                 player.upgradingAt = b
 
-    def stopUpgrading(self, player):
+    def finishUpgrading(self, player):
         if player.upgradingAt:
             player.upgradingAt.upgrading = None
             player.upgradingAt = None

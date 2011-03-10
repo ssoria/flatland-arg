@@ -26,7 +26,7 @@ class PlayerController(object):
     @ivar player: The player being controlled.
     @ivar downDirections: List of currently held arrow keys.
     """
-    _actions = set([ATTACK, SCAN, BUILD])
+    _actions = set([ATTACK, SCAN, BUILD, UPGRADE])
     
     def __init__(self, perspective, view):
         self.perspective = perspective
