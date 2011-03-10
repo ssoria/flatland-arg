@@ -62,7 +62,7 @@ class PlayerController(object):
     def _startedAction(self, action):
         self._currentAction = action
         if self._currentAction == ATTACK:
-            self._attackStart = self.previousTime
+            self.perspective.callRemote('startAttacking')
         elif self._currentAction == BUILD:
             self.perspective.callRemote('startBuilding')
         elif self._currentAction == SCAN:
@@ -73,10 +73,7 @@ class PlayerController(object):
 
     def _finishedAction(self):
         if self._currentAction == ATTACK:
-            dt = self.previousTime - self._attackStart
-            if dt > 2000:
-                self.perspective.callRemote('attack', dt / 1000.0)
-            del self._attackStart
+            self.perspective.callRemote('finishAttacking')
         elif self._currentAction == BUILD:
             self.perspective.callRemote('finishBuilding')
         elif self._currentAction == SCAN:

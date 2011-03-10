@@ -55,7 +55,7 @@ class Environment(pb.Cacheable, pb.RemoteCache):
     def observe_destroyBuilding(self, bid):
         del self.buildings[bid]
 
-    def attack(self, player, dt):
+    def attack(self, player):
         distance = 3
         for p in self.players.itervalues():
             if (p.team != player.team) and (p.position - player.position) < distance:
@@ -63,6 +63,10 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         for b in self.buildings.values():
             if (b.position - player.position) < distance:
                 b.hit()
+
+    def startAttacking(self, player):
+        player.action = LoopingCall(self.attack, player)
+        player.action.start(2, now=False)
 
     def startBuilding(self, player):
         building = None
@@ -77,9 +81,9 @@ class Environment(pb.Cacheable, pb.RemoteCache):
                 if not building:
                     return
         player.action = LoopingCall(building.build, player)
-        player.action.start(2, False)
+        player.action.start(2, now=False)
     
-    def finishBuilding(self, player):
+    def finishAction(self, player):
         if player.action:
             player.action.stop()
             player.action = None

@@ -35,12 +35,14 @@ class GameAvatar(pb.Avatar):
         self.player = self.environment.createPlayer(team)
     def disconnect(self):
         self.environment.removePlayer(self.player)
-    def perspective_attack(self, dt):
-        self.environment.attack(self.player, dt)
+    def perspective_startAttacking(self):
+        self.environment.startAttacking(self.player)
+    def perspective_finishAttacking(self):
+        self.environment.finishAction(self.player)
     def perspective_startBuilding(self):
         self.environment.startBuilding(self.player)
     def perspective_finishBuilding(self):
-        self.environment.finishBuilding(self.player)
+        self.environment.finishAction(self.player)
     def perspective_startScanning(self):
         self.player.startScanning()
     def perspective_finishScanning(self):
