@@ -6,13 +6,27 @@ from twisted.spread import pb
 from vector import Vector2D
 from twisted.internet import reactor
 
+def drawArmor(screen, sides, resources, position):
+    i = 0
+    while i < resources:
+        endPosition = (position[0], position[1] + 10)
+        pygame.draw.line(screen, (0, 255, 0), position, endPosition, 7)
+        position = (position[0] + 10, position[1])
+        i += 1
+    while i < sides:
+        endPosition = (position[0], position[1] + 10)
+        pygame.draw.line(screen, (255, 0, 0), position, endPosition, 7)
+        position = (position[0] + 10, position[1])
+        i += 1
+
+
 class Player(pb.Cacheable, pb.RemoteCache):
     def __init__(self):
         #pb.Cacheable.__init__(self)
         #pb.RemoteCache.__init__(self)
         self.position = Vector2D(0, 0)
         self.sides = 3
-        self.resources = 0
+        self.resources = 1
         self.observers = []
         self.scanning = 0
         self.size = 1
@@ -24,6 +38,15 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self._startScanning()
         for o in self.observers: o.callRemote('startScanning')
     observe_startScanning = _startScanning
+
+    def _trapped(self):
+        if self.resources:
+            self.resources = 0
+        else:
+            self.sides = 0
+    def trapped(self):
+        self.observe_trapped(self)
+        for o in self.observers: o.callRemote('trapped')
 
     def _finishScanning(self):
         # scanning turns negative while effect lingers
@@ -61,7 +84,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
 
     def _hit(self):
         if self.resources:
-            self.resources = 0
+            self.resources -= 1
         else:
             self.sides -= 1
     def hit(self):
@@ -77,8 +100,13 @@ class Player(pb.Cacheable, pb.RemoteCache):
         for o in self.observers: o.callRemote('levelUp')
     observe_levelUp = _levelUp
 
+    def _teamColor(self):
+        if self.team == 1:
+            return (255, 0, 255)
+        else:
+            return (0, 255, 255)
     def paint(self, screen, position, isTeammate):
-        pygame.draw.circle(screen, (255, 255, 255), position, self.size * 10)
+        pygame.draw.circle(screen, self._teamColor(), position, 10)
 
         if not isTeammate:
             return
@@ -86,17 +114,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
         if self.scanning:
             pygame.gfxdraw.filled_circle(screen, position.x, position.y, self.getScanRadius() * 10, pygame.Color(255, 0, 255, 150))
 
-        i = 0
-        while i < self.resources:
-            endPosition = (position[0], position[1] + 10)
-            pygame.draw.line(screen, (0, 255, 0), position, endPosition, 7)
-            position = (position[0] + 10, position[1])
-            i += 1
-        while i < self.sides:
-            endPosition = (position[0], position[1] + 10)
-            pygame.draw.line(screen, (255, 0, 0), position, endPosition, 7)
-            position = (position[0] + 10, position[1])
-            i += 1
+        drawArmor(screen, self.sides, self.resources, position)
 
     def getStateToCacheAndObserveFor(self, perspective, observer):
         self.observers.append(observer)
@@ -109,37 +127,70 @@ class Player(pb.Cacheable, pb.RemoteCache):
 
 pb.setUnjellyableForClass(Player, Player)
 
-def buildingFactory(sides):
-    if sides < 3:
-        return None
-    elif sides == 3:
-        return Trap()
-    elif sides == 4:
-        return Sentry()
-    else:
-        return PolyFactory()
-
 class Building(pb.Cacheable, pb.RemoteCache):
     def __init__(self):
         self.sides = 0
         self.resources = 0
         self.observers = []
-        self.builders = []
-        self.deferred = defer.Deferred()
         self.size = 1
+        self.onDestroyed = defer.Deferred()
 
     def build(self, player):
         if not player.resources:
             return
+        if self.sides == 5 and self.resources == 5:
+            pass
         player.loseResource()
-        self.resources += 1
-        for o in self.observers: o.callRemote('setResources', self.resources)
+        self.gainResource()
+
+    def _gainResource(self):
+        # Not a full polyfactory
+        # if rubble
+        if not self.sides:
+            if self.resources == 2:
+                self.sides = 3
+                self.resources = 0
+            else:
+                self.resources += 1
+        else:
+            # if armor is full
+            if self.sides == self.resources:
+                self.sides += 1
+                self.resources = 0
+            else:
+                self.resources += 1
+    def gainResource(self):
+        self._gainResource()
+        for o in self.observers: o.callRemote('gainResource')
+    observe_gainResource = _gainResource
 
     def observe_setResources(self, r):
         self.resources = r
 
+    # TODO!!!
+    def _teamColor(self):
+        if self.team == 1:
+            return pygame.Color(255, 0, 255, 150)
+        else:
+            return pygame.Color(0, 255, 255, 150)
+
+    def paintTrap(self, screen, position):
+        size = 10
+        pygame.gfxdraw.filled_circle(screen, position.x, position.y, size, self._teamColor())
+    def paintSentry(self, screen, position):
+        size = 20
+        pygame.gfxdraw.filled_circle(screen, position.x, position.y, size, self._teamColor())
+    def paintPolyFactory(self, screen, position):
+        size = 20
+        pygame.gfxdraw.filled_circle(screen, position.x, position.y, size, self._teamColor())
     def paint(self, screen, position):
-        pygame.gfxdraw.filled_circle(screen, position.x, position.y, self.size * 10, pygame.Color(255, 0, 0, (255 * (self.resources + 1)) / 7))
+        if self.sides == 3:
+            self.paintTrap(screen, position)
+        elif self.sides == 4:
+            self.paintSentry(screen, position)
+        elif self.sides == 5:
+            self.paintPolyFactory(screen, position)
+        drawArmor(screen, self.sides, self.resources, position)
 
     def getStateToCacheAndObserveFor(self, perspective, observer):
         self.observers.append(observer)
@@ -150,80 +201,23 @@ class Building(pb.Cacheable, pb.RemoteCache):
     def stoppedObserving(self, perspective, observer):
         self.observers.remove(observer)
 
-    def addBuilder(self, player):
-        self.builders.append(player)
-
-    def removeBuilder(self, player):
-        self.builders.remove(player)
-        if not self.builders:
-            self.deferred.callback(buildingFactory(self.resources))
-
     def hit(self):
-        if self.sides:
-            return buildingFactory(self.sides - 1)
+        if not (self.sides and self.resources):
+            self.onDestroyed.callback(self)
+        elif self.resources:
+            self.resources -= 1
+            for o in self.observers: o.callRemote('setResources', self.resources)
+
+    def isTrap(self):
+        return self.sides == 3
+
+    def isSentry(self):
+        return self.sides == 4
+
+    def isPolyFactory(self):
+        return self.sides == 5
 
 pb.setUnjellyableForClass(Building, Building)
-
-class Trap(Building):
-    def __init__(self):
-        Building.__init__(self)
-        self.sides = 3
-        self.size = 1
-
-    def paint(self, screen, position):
-        pygame.gfxdraw.filled_circle(screen, position.x, position.y, self.size * 10, pygame.Color(0, 255, 255, 150))
-
-    def build(self, player):
-        pass
-
-    def addBuilder(self, player):
-        pass
-
-    def removeBuilder(self, player):
-        pass
-
-    def trigger(self, player):
-        player.hit()
-
-pb.setUnjellyableForClass(Trap, Trap)
-
-class Sentry(Building):
-    def __init__(self):
-        Building.__init__(self)
-        self.sides = 4
-        self.size = 2
-
-    def paint(self, screen, position):
-        pygame.gfxdraw.filled_circle(screen, position.x, position.y, self.size * 10, pygame.Color(255, 255, 0, 150))
-
-    def build(self, player):
-        pass
-
-    def addBuilder(self, player):
-        pass
-
-    def removeBuilder(self, player):
-        pass
-
-pb.setUnjellyableForClass(Sentry, Sentry)
-
-class PolyFactory(Building):
-    def __init__(self):
-        Building.__init__(self)
-        self.sides = 5
-        self.size = 2
-
-    def paint(self, screen, position):
-        pygame.gfxdraw.filled_circle(screen, position.x, position.y, self.size * 10, pygame.Color(255, 0, 255, 150))
-
-    def removeBuilder(self, player):
-        self.builders.remove(player)
-        if not self.builders and self.resources >= player.sides:
-            self.resources = 0
-            for o in self.observers: o.callRemote('setResources', self.resources)
-            player.levelUp()
-
-pb.setUnjellyableForClass(PolyFactory, PolyFactory)
 
 class ResourcePool(pb.Copyable, pb.RemoteCopy):
     def __init__(self, size):

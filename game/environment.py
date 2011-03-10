@@ -1,5 +1,5 @@
 from vector import Vector2D
-from game.player import Player, ResourcePool, Building, Trap, Sentry
+from game.player import Player, ResourcePool, Building
 from twisted.spread import pb
 from twisted.internet.task import LoopingCall
 
@@ -42,34 +42,27 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         building.position = position
         bid = id(building)
         self.buildings[bid] = building
-        building.deferred.addCallback(self.buildingComplete, building)
+        building.onDestroyed.addCallback(self.destroyBuilding)
         for o in self.observers: o.callRemote('createBuilding', bid, building)
         return building
     def observe_createBuilding(self, bid, building):
         self.buildings[bid] = building
 
-    def buildingComplete(self, newBuilding, oldBuilding):
-        if newBuilding:
-            newBuilding.team = oldBuilding.team
-            newBuilding.position = oldBuilding.position
-            newId = id(newBuilding)
-            self.buildings[newId] = newBuilding
-            for o in self.observers: o.callRemote('createBuilding', newId, newBuilding)
-        oldId = id(oldBuilding)
-        del self.buildings[oldId]
-        for o in self.observers: o.callRemote('destroyBuilding', oldId)
+    def destroyBuilding(self, building):
+        bid = id(building)
+        del self.buildings[bid]
+        for o in self.observers: o.callRemote('destroyBuilding', bid)
     def observe_destroyBuilding(self, bid):
         del self.buildings[bid]
 
     def attack(self, player, dt):
-        distance = min(player.sides, dt / 2) * 50
-        print "Player ", id(player), " attacked with strength ", distance
+        distance = 3
         for p in self.players.itervalues():
             if (p.team != player.team) and (p.position - player.position) < distance:
                 p.hit()
         for b in self.buildings.values():
             if (b.position - player.position) < distance:
-                self.buildingComplete(b.hit(), b)
+                b.hit()
 
     def startBuilding(self, player):
         building = None
@@ -83,9 +76,8 @@ class Environment(pb.Cacheable, pb.RemoteCache):
                 building = self.createBuilding(player.team, player.position)
                 if not building:
                     return
-        building.addBuilder(player)
         player.action = LoopingCall(building.build, player)
-        player.action.start(2, False).addCallback(lambda ign: building.removeBuilder(player))
+        player.action.start(2, False)
     
     def finishBuilding(self, player):
         if player.action:
@@ -97,23 +89,25 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         for o in self.observers: o.callRemote('updatePlayerPosition', id(player), position)
 
         for b in self.buildings.itervalues():
-            if isinstance(b, Trap) and (b.team != player.team) and ((b.position - player.position) < b.size):
-                b.trigger(player)
-                bid = id(b)
-                del self.buildings[bid]
-                for o in self.observers: o.callRemote('destroyBuilding', bid)
+            if b.isTrap() and (b.team != player.team) and ((b.position - player.position) < 1):
+                player.trapped(player)
+                self.destroyBuilding(b)
                 break
     def observe_updatePlayerPosition(self, playerId, position):
         self.players[playerId].position = position
 
     def isVisible(self, entity):
+        # Spectators see all
         if not self.team:
             return True
+        # See objects on your team
         if self.team == entity.team:
             return True
+        # Object in range of my sentries
         for b in self.buildings.itervalues():
-            if isinstance(b, Sentry) and (b.team == self.team) and (entity.position - b.position) < b.size:
+            if b.isSentry() and (b.team == self.team) and (entity.position - b.position) < 7:
                 return True
+        # object in range of a scanning player
         for p in self.players.itervalues():
             if (self.team == p.team):
                 if (entity.position - p.position) < p.getScanRadius():

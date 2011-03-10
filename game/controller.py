@@ -74,7 +74,8 @@ class PlayerController(object):
     def _finishedAction(self):
         if self._currentAction == ATTACK:
             dt = self.previousTime - self._attackStart
-            self.perspective.callRemote('attack', dt / 1000.0)
+            if dt > 2000:
+                self.perspective.callRemote('attack', dt / 1000.0)
             del self._attackStart
         elif self._currentAction == BUILD:
             self.perspective.callRemote('finishBuilding')
