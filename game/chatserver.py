@@ -47,6 +47,10 @@ class GameAvatar(pb.Avatar):
         self.player.startScanning()
     def perspective_finishScanning(self):
         self.player.finishScanning()
+    def perspective_startUpgrading(self):
+        self.environment.startUpgrading(self.player)
+    def perspective_finishUpgrading(self):
+        self.environment.finishUpgrading(self.player)
     def perspective_updatePosition(self, position):
         self.environment.updatePlayerPosition(self.player, position)
     def perspective_getEnvironment(self):

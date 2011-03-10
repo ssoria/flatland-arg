@@ -88,6 +88,17 @@ class Environment(pb.Cacheable, pb.RemoteCache):
             player.action.stop()
             player.action = None
 
+    def startUpgrading(self, player):
+        for b in self.buildings.itervalues():
+            if b.isPolyFactory() and (b.team == player.team) and (b.position - player.position) < 3 and not b.upgrading:
+                b.upgrading = player
+                player.upgradingAt = b
+
+    def stopUpgrading(self, player):
+        if player.upgradingAt:
+            player.upgradingAt.upgrading = None
+            player.upgradingAt = None
+
     def updatePlayerPosition(self, player, position):
         player.position = position
         for o in self.observers: o.callRemote('updatePlayerPosition', id(player), position)

@@ -31,6 +31,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self.scanning = 0
         self.size = 1
         self.action = None
+        self.upgradingAt = None
 
     def _startScanning(self):
         self.scanning = pygame.time.get_ticks()
@@ -134,12 +135,19 @@ class Building(pb.Cacheable, pb.RemoteCache):
         self.observers = []
         self.size = 1
         self.onDestroyed = defer.Deferred()
+        self.upgrading = None
 
     def build(self, player):
         if not player.resources:
             return
         if self.sides == 5 and self.resources == 5:
-            pass
+            if self.upgrading and self.upgrading.sides > 2:
+                player.loseResource()
+                if self.upgrading.sides == self.upgrading.resources:
+                    self.upgrading.levelUp()
+                else:
+                    self.upgrading.gainResource()
+            return
         player.loseResource()
         self.gainResource()
 

@@ -14,7 +14,8 @@ import pygame.time
 # TODO: Can we have a keymap file?
 from pygame import (K_a as ATTACK,
                     K_s as SCAN,
-                    K_d as BUILD)
+                    K_d as BUILD,
+                    K_w as UPGRADE)
 
 from game.vector import Vector2D
 
@@ -67,6 +68,8 @@ class PlayerController(object):
             self.perspective.callRemote('startBuilding')
         elif self._currentAction == SCAN:
             self.perspective.callRemote('startScanning')
+        elif self._currentAction == UPGRADE:
+            self.perspective.callRemote('startUpgrading')
         else:
             self._currentAction = None
 
@@ -78,6 +81,8 @@ class PlayerController(object):
             self.perspective.callRemote('finishBuilding')
         elif self._currentAction == SCAN:
             self.perspective.callRemote('finishScanning')
+        elif self._currentAction == UPGRADE:
+            self.perspective.callRemote('finishUpgrading')
         self._currentAction = None
         return
 
