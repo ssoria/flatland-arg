@@ -40,13 +40,13 @@ class Player(pb.Cacheable, pb.RemoteCache):
         for o in self.observers: o.callRemote('startScanning')
     observe_startScanning = _startScanning
 
-    def _trapped(self):
+    def observe_trapped(self):
         if self.resources:
             self.resources = 0
         else:
             self.sides = 0
     def trapped(self):
-        self.observe_trapped(self)
+        self.observe_trapped()
         for o in self.observers: o.callRemote('trapped')
 
     def _finishScanning(self):

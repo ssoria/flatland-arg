@@ -105,7 +105,7 @@ class Environment(pb.Cacheable, pb.RemoteCache):
 
         for b in self.buildings.itervalues():
             if b.isTrap() and (b.team != player.team) and ((b.position - player.position) < 1):
-                player.trapped(player)
+                player.trapped()
                 self.destroyBuilding(b)
                 break
     def observe_updatePlayerPosition(self, playerId, position):
