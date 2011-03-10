@@ -61,6 +61,8 @@ class Player(pb.Cacheable, pb.RemoteCache):
     observe_finishScanning = _finishScanning
 
     def getScanRadius(self):
+        if not self.scanning:
+            return 0
         if (self.scanning < 0):
             dt = -self.scanning / 2000.0
         else:
