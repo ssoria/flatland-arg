@@ -11,14 +11,22 @@ from twisted.spread import pb
 from twisted.internet import defer
 from twisted.internet import reactor
 from twisted.cred import credentials
+from twisted.internet.protocol import DatagramProtocol
+
+class Bootstrap(DatagramProtocol):
+    def datagramReceived(self, datagram, address):
+        if datagram == "FlatlandARG!!!":
+            self.port.stopListening()
+            ip, port = address
+            Client().connect(ip)
+            
 
 class Client():
-    def connect(self):
+    def connect(self, ip):
         factory = pb.PBClientFactory()
-        reactor.connectTCP("localhost", 8800, factory)
+        reactor.connectTCP(ip, 8800, factory)
         d = factory.login(credentials.Anonymous())
         d.addCallback(self.connected)
-        reactor.run()
 
     @defer.inlineCallbacks
     def connected(self, perspective):
@@ -33,6 +41,6 @@ class Client():
     def shutdown(self, result):
         reactor.stop()
 
-
-Client().connect()
-
+bootstrap = Bootstrap()
+bootstrap.port = reactor.listenUDP(8000, bootstrap)
+reactor.run()

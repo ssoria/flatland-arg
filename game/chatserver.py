@@ -9,6 +9,7 @@ from twisted.cred import checkers, portal
 from twisted.internet.task import LoopingCall
 from twisted.internet import reactor
 from twisted.spread import pb
+from twisted.internet.protocol import DatagramProtocol
 
 class GameRealm:
     implements(portal.IRealm)
@@ -68,4 +69,6 @@ LoopingCall(lambda: pygame.event.pump()).start(0.03)
 portal = portal.Portal(realm, [checkers.AllowAnonymousAccess()])
 
 reactor.listenTCP(8800, pb.PBServerFactory(portal))
+p = reactor.listenUDP(0, DatagramProtocol())
+LoopingCall(lambda: p.write("FlatlandARG!!!", ("224.0.0.1", 8000))).start(1)
 reactor.run()
