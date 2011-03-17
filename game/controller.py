@@ -5,17 +5,20 @@ Input handling.
 """
 
 from twisted.internet.task import LoopingCall
+from twisted.internet import reactor
 import math
 
 import pygame.event
 import pygame.mouse
 import pygame.time
+import sys
 
 # TODO: Can we have a keymap file?
 from pygame import (K_a as ATTACK,
                     K_s as SCAN,
                     K_d as BUILD,
-                    K_w as UPGRADE)
+                    K_w as UPGRADE,
+                    K_ESCAPE as QUIT)
 
 from game.vector import Vector2D
 
@@ -96,6 +99,9 @@ class PlayerController(object):
         self.previousTime = time
 
         for event in pygame.event.get():
+            if (event.type == pygame.QUIT) or ((event.type == pygame.KEYDOWN) and (event.key == QUIT)):
+                reactor.stop()
+                sys.exit()
             if (event.type == pygame.KEYDOWN) and (event.key in self._actions):
                 self._actionQueue.append(event.key)
             elif (event.type == pygame.KEYUP) and (event.key in self._actions):
