@@ -12,6 +12,7 @@ from twisted.internet import defer
 from twisted.internet import reactor
 from twisted.cred import credentials
 from twisted.internet.protocol import DatagramProtocol
+import pygame
 
 class Bootstrap(DatagramProtocol):
     def datagramReceived(self, datagram, address):
@@ -41,6 +42,8 @@ class Client():
     def shutdown(self, result):
         reactor.stop()
 
+pygame.init()
+pygame.display.set_mode((800, 480), pygame.DOUBLEBUF)
 bootstrap = Bootstrap()
 bootstrap.port = reactor.listenUDP(8000, bootstrap)
 reactor.run()

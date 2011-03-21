@@ -59,6 +59,8 @@ class GameAvatar(pb.Avatar):
     def perspective_getTeam(self):
         return self.player.team
 
+pygame.init()
+pygame.display.set_mode((800, 480), pygame.DOUBLEBUF)
 realm = GameRealm()
 env = Environment()
 view = Window(env)

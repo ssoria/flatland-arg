@@ -76,8 +76,7 @@ class Window(object):
 
 
     def start(self, title):
-        pygame.init()
-        self.screen = pygame.display.set_mode((800, 480), pygame.DOUBLEBUF)
+        self.screen = pygame.display.get_surface()
         pygame.display.set_caption(title)
         self._renderCall = LoopingCall(self.paint)
         self._renderCall.start(0.03)
