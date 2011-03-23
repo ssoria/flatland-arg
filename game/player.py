@@ -6,6 +6,7 @@ from twisted.spread import pb
 from vector import Vector2D
 from twisted.internet import reactor
 from twisted.python.filepath import FilePath
+from animation import loadImage, Animation
 
 def drawArmor(screen, sides, resources, position):
     i = 0
@@ -119,13 +120,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
             for s in sides:
                 for p in firstPerson:
                     path = dir.child("%s%s_%s.png" % (firstPerson[p], teams[t], sides[s]))
-                    self.images[(p, t, s)] = self.loadImage(path)
-
-    def loadImage(self, path):
-        image = pygame.image.load(path.path)
-        image = image.convert()
-        image.set_colorkey(image.get_at((0,0)))
-        return image
+                    self.images[(p, t, s)] = loadImage(path.path)
 
     def _teamColor(self):
         if self.team == 1:
@@ -156,6 +151,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self.observers.append(observer)
         state = pb.Cacheable.getStateToCopyFor(self, perspective).copy()
         del state['observers']
+        del state['images']
         if self == perspective.player:
             state['self'] = True
         return state
@@ -271,6 +267,13 @@ pb.setUnjellyableForClass(Building, Building)
 class ResourcePool(pb.Copyable, pb.RemoteCopy):
     def __init__(self, size):
         self.size = 3
+        self.loadImages()
+
+    def loadImages(self):
+        from game import __file__ as gameFile
+        path = FilePath(gameFile).parent().sibling("data").child("images").child("resource_pool").child("resource_pool{0:04}.png")
+        self.image = Animation(path.path)
+        self.image.start(12)
 
     def build(self, player):
         player.gainResource()
@@ -282,6 +285,10 @@ class ResourcePool(pb.Copyable, pb.RemoteCopy):
         pass
 
     def paint(self, screen, position):
-        pygame.gfxdraw.filled_circle(screen, position.x, position.y, self.size * 10, pygame.Color(0, 0, 255, 150))
+        self.image.draw(screen, position)
+
+    def setCopyableState(self, state):
+        pb.RemoteCopy.setCopyableState(self, state)
+        self.loadImages()
 
 pb.setUnjellyableForClass(ResourcePool, ResourcePool)
