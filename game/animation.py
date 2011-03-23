@@ -7,6 +7,15 @@ def loadImage(path):
     image.set_colorkey(image.get_at((0,0)))
     return image
 
+class Image(object):
+    def __init__(self, path):
+        self._image = loadImage(path)
+        self.width, self.height = self._image.get_size()
+
+    def draw(self, screen, position):
+        position = (position[0] - (self.width / 2), position[1] - (self.height / 2))
+        screen.blit(self._image, position)
+
 class Animation(object):
     def __init__(self, path):
         i = 0

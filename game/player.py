@@ -6,7 +6,8 @@ from twisted.spread import pb
 from vector import Vector2D
 from twisted.internet import reactor
 from twisted.python.filepath import FilePath
-from animation import loadImage, Animation
+from animation import loadImage, Animation, Image
+import settings
 
 def drawArmor(screen, sides, resources, position):
     i = 0
@@ -173,6 +174,7 @@ class Building(pb.Cacheable, pb.RemoteCache):
         self.size = 1
         self.onDestroyed = defer.Deferred()
         self.upgrading = None
+        self.loadImages()
 
     def build(self, player):
         if not player.resources:
@@ -219,20 +221,37 @@ class Building(pb.Cacheable, pb.RemoteCache):
         else:
             return pygame.Color(0, 255, 255, 150)
 
+    def loadImages(self):
+        self.trapImage = Image(settings.ImagePaths.trap)
+        self.sentryImage = Image(settings.ImagePaths.sentry)
+        self.enemyTraps = {1 : Animation(settings.ImagePaths.enemyTraps[1]),
+                           2 : Animation(settings.ImagePaths.enemyTraps[2])}
+        self.enemyTraps[1].start(12)
+        self.enemyTraps[2].start(12)
+
     def paintTrap(self, screen, position):
-        size = 10
-        pygame.gfxdraw.filled_circle(screen, position.x, position.y, size, self._teamColor())
+        self.trapImage.draw(screen, position)
+    def paintEnemyTrap(self, screen, position):
+        self.enemyTraps[self.team].draw(screen, position)
     def paintSentry(self, screen, position):
+        self.sentryImage.draw(screen, position)
+    def paintEnemySentry(self, screen, position):
         size = 20
         pygame.gfxdraw.filled_circle(screen, position.x, position.y, size, self._teamColor())
     def paintPolyFactory(self, screen, position):
         size = 20
         pygame.gfxdraw.filled_circle(screen, position.x, position.y, size, self._teamColor())
-    def paint(self, screen, position):
+    def paint(self, screen, position, isTeammate):
         if self.sides == 3:
-            self.paintTrap(screen, position)
+            if isTeammate:
+                self.paintTrap(screen, position)
+            else:
+                self.paintEnemyTrap(screen, position)
         elif self.sides == 4:
-            self.paintSentry(screen, position)
+            if isTeammate:
+                self.paintSentry(screen, position)
+            else:
+                self.paintEnemyTrap(screen, position)
         elif self.sides == 5:
             self.paintPolyFactory(screen, position)
         drawArmor(screen, self.sides, self.resources, position)
@@ -242,6 +261,10 @@ class Building(pb.Cacheable, pb.RemoteCache):
         state = pb.Cacheable.getStateToCopyFor(self, perspective).copy()
         del state['observers']
         return state
+
+    def setCopyableState(self, state):
+        pb.RemoteCache.setCopyableState(self, state)
+        self.loadImages()
 
     def stoppedObserving(self, perspective, observer):
         self.observers.remove(observer)

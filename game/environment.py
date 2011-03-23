@@ -134,7 +134,7 @@ class Environment(pb.Cacheable, pb.RemoteCache):
             p.paint(view.screen, view.screenCoord(p.position), self.isVisible(p))
         for b in self.buildings.itervalues():
             if self.isVisible(b):
-                b.paint(view.screen, view.screenCoord(b.position))
+                b.paint(view.screen, view.screenCoord(b.position), b.team == self.team)
         self.rp.paint(view.screen, view.screenCoord(self.rp.position))
 
     # pb.Cacheable stuff
