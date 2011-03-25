@@ -43,7 +43,7 @@ class Client():
         reactor.stop()
 
 pygame.init()
-pygame.display.set_mode((800, 480), pygame.DOUBLEBUF)
+pygame.display.set_mode((480, 800), pygame.DOUBLEBUF)
 bootstrap = Bootstrap()
 bootstrap.port = reactor.listenUDP(8000, bootstrap)
 reactor.run()

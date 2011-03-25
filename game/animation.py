@@ -9,33 +9,46 @@ def loadImage(path):
 
 class Image(object):
     def __init__(self, path):
-        self._image = loadImage(path)
-        self.width, self.height = self._image.get_size()
+        self.path = path
+
+    def load(self):
+        self._image = loadImage(self.path)
+        self._setCenter()
+
+    def _setCenter(self):
+        self.center = self._image.get_rect().center
 
     def draw(self, screen, position):
-        position = (position[0] - (self.width / 2), position[1] - (self.height / 2))
-        screen.blit(self._image, position)
+        imagePosition = (position[0] - self.center[0], position[1] - self.center[1])
+        screen.blit(self._image, imagePosition)
 
-class Animation(object):
-    def __init__(self, path):
+class Animation(Image):
+    @property
+    def _image(self):
+        return self._images[self._imageIndex]
+
+    def load(self):
         i = 0
         self._images = {}
         while True:
             try:
-                self._images[i] = loadImage(path.format(i + 1))
+                self._images[i] = loadImage(self.path.format(i + 1))
                 i += 1
             except Exception as e:
                 break
-        self.width, self.height = self._images[0].get_size()
-
-    def draw(self, screen, position):
-        position = (position[0] - (self.width / 2), position[1] - (self.height / 2))
-        screen.blit(self._images[self._imageIndex], position)
+        self._imageIndex = 0
+        self._setCenter()
 
     def start(self, fps):
         self._imageIndex = 0
-        self._loopingCall = LoopingCall(self._incrementImageIndex)
-        self._loopingCall.start(1.0 / fps)
+        self._loopingCall = LoopingCall(self._incrementImageIndex, len(self._images))
+        return self._loopingCall.start(1.0 / fps)
 
-    def _incrementImageIndex(self):
-        self._imageIndex = (self._imageIndex + 1) % len(self._images)
+    def _incrementImageIndex(self, max):
+        self._imageIndex += 1
+        if self._imageIndex == max:
+            self._loopingCall.stop()
+
+class LoopingAnimation(Animation):
+    def _incrementImageIndex(self, max):
+        self._imageIndex = (self._imageIndex + 1) % max

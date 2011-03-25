@@ -1,8 +1,16 @@
+# Python
+from collections import deque
+
+# pyGame
 import pygame
 
+# twisted
 from twisted.python.filepath import FilePath
 from twisted.internet.task import LoopingCall
+
+# local
 from vector import Vector2D
+from settings import Images
 
 
 def loadImage(path):
@@ -20,6 +28,27 @@ def loadImage(path):
 class Window(object):
     def __init__(self, environment):
         self.environment = environment
+        from game import __file__ as gamePath
+        self.images = Images(FilePath(gamePath).parent().sibling("data").child("images"))
+        self.images.load()
+        self.actions = deque()
+        self.action = None
+
+    def addAction(self, action):
+        self.actions.append(self.images.images[action])
+        self.startAction()
+
+    def startAction(self):
+        if self.action == None:
+            try:
+                self.action = self.actions.popleft()
+                self.action.start(5).addCallback(self.stopAction)
+            except:
+                pass
+
+    def stopAction(self, ign):
+        self.action = None
+        self.startAction()
 
     def draw(self, image, position):
         """
@@ -58,6 +87,8 @@ class Window(object):
         """
         self.screen.fill((0, 0, 0))
         self.environment.paint(self)
+        if self.action:
+            self.action.draw(self.screen, (240, 400))
         pygame.display.flip()
 
     def worldCoord(self, p):

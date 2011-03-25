@@ -60,7 +60,7 @@ class GameAvatar(pb.Avatar):
         return self.player.team
 
 pygame.init()
-pygame.display.set_mode((800, 480), pygame.DOUBLEBUF)
+pygame.display.set_mode((480, 800), pygame.DOUBLEBUF)
 realm = GameRealm()
 env = Environment()
 view = Window(env)

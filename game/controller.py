@@ -34,7 +34,7 @@ class PlayerController(object):
     def __init__(self, perspective, view):
         self.perspective = perspective
         self.position = Vector2D(0, 0)
-        self.speed = 5
+        self.speed = 10
         self.view = view
         self._actionQueue = []
         self._currentAction = None
@@ -52,7 +52,7 @@ class PlayerController(object):
 
 
     def _updatePosition(self, dt):
-        if not pygame.mouse.get_focused():
+        if not pygame.mouse.get_focused() or not dt:
             return
         destination = self.view.worldCoord(Vector2D(pygame.mouse.get_pos()))
         direction = destination - self.position
@@ -67,10 +67,12 @@ class PlayerController(object):
         self._currentAction = action
         if self._currentAction == ATTACK:
             self.perspective.callRemote('startAttacking')
+            self.view.addAction("attack")
         elif self._currentAction == BUILD:
             self.perspective.callRemote('startBuilding')
         elif self._currentAction == SCAN:
             self.perspective.callRemote('startScanning')
+            self.view.addAction("sweep")
         elif self._currentAction == UPGRADE:
             self.perspective.callRemote('startUpgrading')
         else:

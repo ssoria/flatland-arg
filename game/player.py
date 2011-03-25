@@ -58,7 +58,9 @@ class Player(pb.Cacheable, pb.RemoteCache):
         # scanning turns negative while effect lingers
         self.scanning -= pygame.time.get_ticks()
         def resetScanTime():
-            self.scanning = 0
+            # TODO - Cancel future callback instead
+            if self.scanning < 0:
+                self.scanning = 0
         reactor.callLater(5, resetScanTime)
     def finishScanning(self):
         self._finishScanning()
@@ -72,7 +74,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
             dt = -self.scanning / 2000.0
         else:
             dt = (pygame.time.get_ticks() - self.scanning) / 2000.0
-        return math.sqrt(dt) * self.size
+        return math.sqrt(dt) * self.size * 10
 
     def _gainResource(self):
         if self.sides < 3:
@@ -129,24 +131,24 @@ class Player(pb.Cacheable, pb.RemoteCache):
         else:
             return (255, 50, 0)
 
-    def paint(self, screen, position, isTeammate):
+    def paint(self, view, position, isTeammate):
         if isTeammate:
             try:
                 image = self.images[(self.self, self.team, self.sides)]
                 w, h = image.get_size()
                 x = position.x - (w / 2)
                 y = position.y - (h / 2)
-                screen.blit(image, (x, y))
+                view.screen.blit(image, (x, y))
             except:
-                pygame.draw.circle(screen, self._teamColor(), position, 10)
+                pygame.draw.circle(view.screen, self._teamColor(), position, 10)
         else:
-            pygame.draw.circle(screen, self._teamColor(), position, 10)
+            pygame.draw.circle(view.screen, self._teamColor(), position, 10)
             return
 
         if self.scanning:
-            pygame.gfxdraw.filled_circle(screen, position.x, position.y, self.getScanRadius() * 10, pygame.Color(255, 0, 255, 150))
+            pygame.gfxdraw.filled_circle(view.screen, position.x, position.y, self.getScanRadius() * 10, pygame.Color(255, 0, 255, 150))
 
-        drawArmor(screen, self.sides, self.resources, position)
+        drawArmor(view.screen, self.sides, self.resources, position)
 
     def getStateToCacheAndObserveFor(self, perspective, observer):
         self.observers.append(observer)
@@ -174,7 +176,6 @@ class Building(pb.Cacheable, pb.RemoteCache):
         self.size = 1
         self.onDestroyed = defer.Deferred()
         self.upgrading = None
-        self.loadImages()
 
     def build(self, player):
         if not player.resources:
@@ -221,50 +222,32 @@ class Building(pb.Cacheable, pb.RemoteCache):
         else:
             return pygame.Color(0, 255, 255, 150)
 
-    def loadImages(self):
-        self.trapImage = Image(settings.ImagePaths.trap)
-        self.sentryImage = Image(settings.ImagePaths.sentry)
-        self.enemyTraps = {1 : Animation(settings.ImagePaths.enemyTraps[1]),
-                           2 : Animation(settings.ImagePaths.enemyTraps[2])}
-        self.enemyTraps[1].start(12)
-        self.enemyTraps[2].start(12)
-
-    def paintTrap(self, screen, position):
-        self.trapImage.draw(screen, position)
-    def paintEnemyTrap(self, screen, position):
-        self.enemyTraps[self.team].draw(screen, position)
-    def paintSentry(self, screen, position):
-        self.sentryImage.draw(screen, position)
     def paintEnemySentry(self, screen, position):
         size = 20
         pygame.gfxdraw.filled_circle(screen, position.x, position.y, size, self._teamColor())
     def paintPolyFactory(self, screen, position):
         size = 20
         pygame.gfxdraw.filled_circle(screen, position.x, position.y, size, self._teamColor())
-    def paint(self, screen, position, isTeammate):
+    def paint(self, view, position, isTeammate):
         if self.sides == 3:
             if isTeammate:
-                self.paintTrap(screen, position)
+                view.images.images["trap_idle"].draw(view.screen, position)
             else:
-                self.paintEnemyTrap(screen, position)
+                view.images.images[("enemyTraps", self.team)].draw(view.screen, position)
         elif self.sides == 4:
             if isTeammate:
-                self.paintSentry(screen, position)
+                view.images.images["sentry_idle"].draw(view.screen, position)
             else:
-                self.paintEnemyTrap(screen, position)
+                self.paintEnemySentry(view.screen, position)
         elif self.sides == 5:
-            self.paintPolyFactory(screen, position)
-        drawArmor(screen, self.sides, self.resources, position)
+            self.paintPolyFactory(view.screen, position)
+        drawArmor(view.screen, self.sides, self.resources, position)
 
     def getStateToCacheAndObserveFor(self, perspective, observer):
         self.observers.append(observer)
         state = pb.Cacheable.getStateToCopyFor(self, perspective).copy()
         del state['observers']
         return state
-
-    def setCopyableState(self, state):
-        pb.RemoteCache.setCopyableState(self, state)
-        self.loadImages()
 
     def stoppedObserving(self, perspective, observer):
         self.observers.remove(observer)
@@ -290,13 +273,6 @@ pb.setUnjellyableForClass(Building, Building)
 class ResourcePool(pb.Copyable, pb.RemoteCopy):
     def __init__(self, size):
         self.size = 3
-        self.loadImages()
-
-    def loadImages(self):
-        from game import __file__ as gameFile
-        path = FilePath(gameFile).parent().sibling("data").child("images").child("resource_pool").child("resource_pool{0:04}.png")
-        self.image = Animation(path.path)
-        self.image.start(12)
 
     def build(self, player):
         player.gainResource()
@@ -307,11 +283,7 @@ class ResourcePool(pb.Copyable, pb.RemoteCopy):
     def removeBuilder(self, player):
         pass
 
-    def paint(self, screen, position):
-        self.image.draw(screen, position)
-
-    def setCopyableState(self, state):
-        pb.RemoteCopy.setCopyableState(self, state)
-        self.loadImages()
+    def paint(self, view, position):
+        view.images.images["resource_pool"].draw(view.screen, position)
 
 pb.setUnjellyableForClass(ResourcePool, ResourcePool)
