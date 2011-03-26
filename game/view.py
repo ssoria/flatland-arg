@@ -28,8 +28,7 @@ def loadImage(path):
 class Window(object):
     def __init__(self, environment):
         self.environment = environment
-        from game import __file__ as gamePath
-        self.images = Images(FilePath(gamePath).parent().sibling("data").child("images"))
+        self.images = Images(FilePath("data").child("images"))
         self.images.load()
         self.actions = deque()
         self.action = None

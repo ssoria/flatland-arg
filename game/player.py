@@ -116,8 +116,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
         teams = {1 : "blu", 2 : "red"}
         sides = {3 : "tri", 4 : "sqr", 5 : "pent", 6 : "hex"}
         firstPerson = {True : "player", False : "team"}
-        from game import __file__ as gameFile
-        dir = FilePath(gameFile).parent().sibling("data").child("images")
+        dir = FilePath("data").child("images")
         self.images = {}
         for t in teams:
             for s in sides:
