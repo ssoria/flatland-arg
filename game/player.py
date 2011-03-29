@@ -23,6 +23,35 @@ def drawArmor(screen, sides, resources, position):
         i += 1
 
 
+class PlayerScan:
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.startTime = 0
+        self._radius = 0
+        self.resetTimer = None
+
+    def start(self):
+        if self.resetTimer:
+            self.resetTimer.cancel()
+            self.reset()
+        self.startTime = pygame.time.get_ticks()
+
+    def stop(self):
+        self._radius = self.radius()
+        self.startTime = pygame.time.get_ticks()
+        self.resetTimer = reactor.callLater(5, self.reset)
+
+    def radius(self):
+        if self.startTime == 0:
+            return 0
+        dt = (pygame.time.get_ticks() - self.startTime)
+        if self._radius:
+            return self._radius * (1 - (dt / 5000.0))
+        return math.sqrt(dt / 200.0)
+
+
 class Player(pb.Cacheable, pb.RemoteCache):
     def __init__(self):
         #pb.Cacheable.__init__(self)
@@ -31,7 +60,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self.sides = 3
         self.resources = 1
         self.observers = []
-        self.scanning = 0
+        self.scanning = PlayerScan()
         self.size = 1
         self.action = None
         self.upgradingAt = None
@@ -39,33 +68,21 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self.loadImages()
 
     def _startScanning(self):
-        self.scanning = pygame.time.get_ticks()
+        self.scanning.start()
     def startScanning(self):
         self._startScanning()
         for o in self.observers: o.callRemote('startScanning')
     observe_startScanning = _startScanning
 
     def _finishScanning(self):
-        # scanning turns negative while effect lingers
-        self.scanning -= pygame.time.get_ticks()
-        def resetScanTime():
-            # TODO - Cancel future callback instead
-            if self.scanning < 0:
-                self.scanning = 0
-        reactor.callLater(5, resetScanTime)
+        self.scanning.stop()
     def finishScanning(self):
         self._finishScanning()
         for o in self.observers: o.callRemote('finishScanning')
     observe_finishScanning = _finishScanning
 
     def getScanRadius(self):
-        if not self.scanning:
-            return 0
-        if (self.scanning < 0):
-            dt = -self.scanning / 2000.0
-        else:
-            dt = (pygame.time.get_ticks() - self.scanning) / 2000.0
-        return math.sqrt(dt) * self.size * 10
+        return self.scanning.radius()
 
     def observe_trapped(self):
         if self.resources:
@@ -161,6 +178,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
     def setCopyableState(self, state):
         pb.RemoteCache.setCopyableState(self, state)
         self.loadImages()
+        self.scanning = PlayerScan()
 
     def stoppedObserving(self, perspective, observer):
         self.observers.remove(observer)
