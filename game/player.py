@@ -45,15 +45,6 @@ class Player(pb.Cacheable, pb.RemoteCache):
         for o in self.observers: o.callRemote('startScanning')
     observe_startScanning = _startScanning
 
-    def observe_trapped(self):
-        if self.resources:
-            self.resources = 0
-        else:
-            self.sides = 0
-    def trapped(self):
-        self.observe_trapped()
-        for o in self.observers: o.callRemote('trapped')
-
     def _finishScanning(self):
         # scanning turns negative while effect lingers
         self.scanning -= pygame.time.get_ticks()
@@ -75,6 +66,15 @@ class Player(pb.Cacheable, pb.RemoteCache):
         else:
             dt = (pygame.time.get_ticks() - self.scanning) / 2000.0
         return math.sqrt(dt) * self.size * 10
+
+    def observe_trapped(self):
+        if self.resources:
+            self.resources = 0
+        else:
+            self.sides = 0
+    def trapped(self):
+        self.observe_trapped()
+        for o in self.observers: o.callRemote('trapped')
 
     def _gainResource(self):
         if self.sides < 3:
