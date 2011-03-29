@@ -3,8 +3,11 @@ import pygame
 
 def loadImage(path):
     image = pygame.image.load(path)
-    image = image.convert()
-    image.set_colorkey(image.get_at((0,0)))
+    if image.get_at((0, 0))[3] == 0:
+        image = image.convert_alpha()
+    else:
+        image = image.convert()
+        image.set_colorkey(image.get_at((0,0)))
     return image
 
 class Image(object):

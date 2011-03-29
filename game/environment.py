@@ -130,12 +130,12 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         return False
 
     def paint(self, view):
-        for p in self.players.itervalues():
-            p.paint(view, view.screenCoord(p.position), self.isVisible(p))
         for b in self.buildings.itervalues():
             if self.isVisible(b):
                 b.paint(view, view.screenCoord(b.position), b.team == self.team)
         self.rp.paint(view, view.screenCoord(self.rp.position))
+        for p in self.players.itervalues():
+            p.paint(view, view.screenCoord(p.position), self.isVisible(p))
 
     # pb.Cacheable stuff
     def getStateToCacheAndObserveFor(self, perspective, observer):
