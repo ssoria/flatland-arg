@@ -32,6 +32,7 @@ class Images:
                 for p in firstPerson:
                     path = dir.child("{0}{1}_{2}.png".format(firstPerson[p], teams[t], sides[s]))
                     self.images[("Player", p, t, s)] = Image(path)
+            self.images[("Enemy", t)] = Image(dir.child("FIXME_enemy{0}.png".format(teams[t])))
 
     def _addFlatlandAnimation(self, imageDirectory, action):
         # {imageDirectory}/{action}/flatland_{action}XXXX.png

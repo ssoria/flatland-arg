@@ -141,7 +141,8 @@ class Player(pb.Cacheable, pb.RemoteCache):
             image = view.images.images[("Player", self.self, self.team, self.sides)]
             image.draw(view.screen, position)
         else:
-            pygame.draw.circle(view.screen, self._teamColor(), position, 10)
+            image = view.images.images[("Enemy", self.team)]
+            image.draw(view.screen, position)
             return
 
         if self.scanning:
