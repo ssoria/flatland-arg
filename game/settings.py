@@ -10,6 +10,8 @@ class Images:
         self.images["resource_pool"] = LoopingAnimation(dir.child("ani_resources").child("resources{0:04}.png").path)
         self.images["background"] = Image(dir.child("playing_field.png").path)
 
+        self.initPlayerImages(dir)
+
         actions = ["attack", "attack_blocked", "attack_hit", "attack_missed",
                    "building_created", "flatlined", "intro", "lose", "lvldown",
                    "lvlup", "polyfactory", "polyfactory_upgrade",
@@ -19,6 +21,17 @@ class Images:
                    "win"]
         for a in actions:
             self._addFlatlandAnimation(dir, a)
+
+    def initPlayerImages(self, dir):
+        dir = dir.child("team_players")
+        teams = {1 : "blu", 2 : "red"}
+        sides = {0 : "dot", 1 : "line", 2 : "cross", 3 : "tri", 4 : "sqr", 5 : "pent", 6 : "hex"}
+        firstPerson = {True : "player", False : "team"}
+        for t in teams:
+            for s in sides:
+                for p in firstPerson:
+                    path = dir.child("{0}{1}_{2}.png".format(firstPerson[p], teams[t], sides[s]))
+                    self.images[("Player", p, t, s)] = Image(path.path)
 
     def _addFlatlandAnimation(self, imageDirectory, action):
         # {imageDirectory}/{action}/flatland_{action}XXXX.png

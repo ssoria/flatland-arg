@@ -5,9 +5,6 @@ from twisted.internet import defer
 from twisted.spread import pb
 from vector import Vector2D
 from twisted.internet import reactor
-from twisted.python.filepath import FilePath
-from animation import loadImage, Animation, Image
-import settings
 
 def drawArmor(screen, sides, resources, position):
     i = 0
@@ -65,7 +62,6 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self.action = None
         self.upgradingAt = None
         self.self = False
-        self.loadImages()
 
     def _startScanning(self):
         self.scanning.start()
@@ -129,18 +125,6 @@ class Player(pb.Cacheable, pb.RemoteCache):
         for o in self.observers: o.callRemote('levelUp')
     observe_levelUp = _levelUp
 
-    def loadImages(self):
-        teams = {1 : "blu", 2 : "red"}
-        sides = {3 : "tri", 4 : "sqr", 5 : "pent", 6 : "hex"}
-        firstPerson = {True : "player", False : "team"}
-        dir = FilePath("data").child("images")
-        self.images = {}
-        for t in teams:
-            for s in sides:
-                for p in firstPerson:
-                    path = dir.child("%s%s_%s.png" % (firstPerson[p], teams[t], sides[s]))
-                    self.images[(p, t, s)] = loadImage(path.path)
-
     def _teamColor(self):
         if self.team == 1:
             return (0, 50, 255)
@@ -155,12 +139,10 @@ class Player(pb.Cacheable, pb.RemoteCache):
             position = Vector2D(240, 400)
         if isTeammate:
             try:
-                image = self.images[(self.self, self.team, self.sides)]
-                w, h = image.get_size()
-                x = position.x - (w / 2)
-                y = position.y - (h / 2)
-                view.screen.blit(image, (x, y))
-            except:
+                image = view.images.images[("Player", self.self, self.team, self.sides)]
+                image.draw(view.screen, position)
+            except Exception as e:
+                print e
                 pygame.draw.circle(view.screen, self._teamColor(), position, 10)
         else:
             pygame.draw.circle(view.screen, self._teamColor(), position, 10)
@@ -175,14 +157,12 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self.observers.append(observer)
         state = pb.Cacheable.getStateToCopyFor(self, perspective).copy()
         del state['observers']
-        del state['images']
         if self == perspective.player:
             state['self'] = True
         return state
 
     def setCopyableState(self, state):
         pb.RemoteCache.setCopyableState(self, state)
-        self.loadImages()
         self.scanning = PlayerScan()
 
     def stoppedObserving(self, perspective, observer):
