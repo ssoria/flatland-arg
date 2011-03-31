@@ -32,6 +32,7 @@ class Window(object):
         self.images.load()
         self.actions = deque()
         self.action = None
+        self.center = Vector2D(0,0)
 
     def addAction(self, action):
         self.actions.append(self.images.images[action])
@@ -90,6 +91,9 @@ class Window(object):
             self.action.draw(self.screen, (240, 400))
         pygame.display.flip()
 
+    def setCenter(self, position):
+        self.center = position
+
     def worldCoord(self, p):
         width = self.screen.get_width()
         height = self.screen.get_height()
@@ -101,9 +105,8 @@ class Window(object):
         width = self.screen.get_width()
         height = self.screen.get_height()
         (cx, cy) = self.screen.get_rect().center
-        return Vector2D(((p.x * width) / self.environment.width) + cx,
-                        ((p.y * height) / self.environment.height) + cy)
-
+        return Vector2D((((p.x - self.center.x) / (self.environment.width / 2)) * width) + cx,
+                        (((p.y - self.center.y) / (self.environment.height / 2)) * height) + cy)
 
     def start(self, title):
         self.screen = pygame.display.get_surface()

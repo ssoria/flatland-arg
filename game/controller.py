@@ -61,6 +61,7 @@ class PlayerController(object):
         else:
             self.position += (dt * self.speed) * direction.norm()
         self.perspective.callRemote('updatePosition', self.position)
+        self.view.setCenter(self.position)
 
 
     def _startedAction(self, action):
