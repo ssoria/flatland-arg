@@ -8,6 +8,7 @@ class Images:
         self.images[("enemyTraps", 1)] = LoopingAnimation(dir.child("trap_teamblu").child("trap_teamblu{0:04}.png").path)
         self.images[("enemyTraps", 2)] = LoopingAnimation(dir.child("trap_teamred").child("trap_teamred{0:04}.png").path)
         self.images["resource_pool"] = LoopingAnimation(dir.child("ani_resources").child("resources{0:04}.png").path)
+        self.images["background"] = Image(dir.child("playing_field.png").path)
 
         actions = ["attack", "attack_blocked", "attack_hit", "attack_missed",
                    "building_created", "flatlined", "intro", "lose", "lvldown",

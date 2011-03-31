@@ -7,6 +7,7 @@ import pygame
 # twisted
 from twisted.python.filepath import FilePath
 from twisted.internet.task import LoopingCall
+import numpy
 
 # local
 from vector import Vector2D
@@ -32,7 +33,7 @@ class Window(object):
         self.images.load()
         self.actions = deque()
         self.action = None
-        self.center = Vector2D(0,0)
+        self.center = numpy.array((0,0))
 
     def addAction(self, action):
         self.actions.append(self.images.images[action])
@@ -55,14 +56,16 @@ class Window(object):
         Call C{paint} on all views which have been directly added to
         this Window.
         """
-        self.screen.fill((0, 0, 0))
+        background = self.images.images["background"]
+        x, y = (background._image.get_rect().center + self.center * 20) - (240, 400)
+        self.screen.blit(background._image, numpy.array((0, 0)), pygame.Rect(x, y, 480, 800))
         self.environment.paint(self)
         if self.action:
             self.action.draw(self.screen, (240, 400))
         pygame.display.flip()
 
     def setCenter(self, position):
-        self.center = position
+        self.center = numpy.array((position.x, position.y))
 
     def worldCoord(self, p):
         width = self.screen.get_width()
@@ -75,8 +78,8 @@ class Window(object):
         width = self.screen.get_width()
         height = self.screen.get_height()
         (cx, cy) = self.screen.get_rect().center
-        return Vector2D((((p.x - self.center.x) / (self.environment.width / 2)) * width) + cx,
-                        (((p.y - self.center.y) / (self.environment.height / 2)) * height) + cy)
+        return Vector2D((((p.x - self.center[0]) / (self.environment.width / 2)) * width) + cx,
+                        (((p.y - self.center[1]) / (self.environment.height / 2)) * height) + cy)
 
     def start(self, title):
         self.screen = pygame.display.get_surface()
