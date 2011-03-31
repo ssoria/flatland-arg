@@ -3,12 +3,12 @@ from animation import Image, Animation, LoopingAnimation
 class Images:
     def __init__(self, dir):
         self.images = dict()
-        self.images["sentry_idle"] = Image(dir.child("sentry_idle.png").path)
-        self.images["trap_idle"] = Image(dir.child("trap_idle.png").path)
-        self.images[("enemyTraps", 1)] = LoopingAnimation(dir.child("trap_teamblu").child("trap_teamblu{0:04}.png").path)
-        self.images[("enemyTraps", 2)] = LoopingAnimation(dir.child("trap_teamred").child("trap_teamred{0:04}.png").path)
-        self.images["resource_pool"] = LoopingAnimation(dir.child("ani_resources").child("resources{0:04}.png").path)
-        self.images["background"] = Image(dir.child("playing_field.png").path)
+        self.images["sentry_idle"] = Image(dir.child("sentry_idle.png"))
+        self.images["trap_idle"] = Image(dir.child("trap_idle.png"))
+        self.images[("enemyTraps", 1)] = LoopingAnimation(dir.child("trap_teamblu").child("trap_teamblu{0:04}.png"))
+        self.images[("enemyTraps", 2)] = LoopingAnimation(dir.child("trap_teamred").child("trap_teamred{0:04}.png"))
+        self.images["resource_pool"] = LoopingAnimation(dir.child("ani_resources").child("resources{0:04}.png"))
+        self.images["background"] = Image(dir.child("playing_field.png"))
 
         self.initPlayerImages(dir)
 
@@ -31,12 +31,12 @@ class Images:
             for s in sides:
                 for p in firstPerson:
                     path = dir.child("{0}{1}_{2}.png".format(firstPerson[p], teams[t], sides[s]))
-                    self.images[("Player", p, t, s)] = Image(path.path)
+                    self.images[("Player", p, t, s)] = Image(path)
 
     def _addFlatlandAnimation(self, imageDirectory, action):
         # {imageDirectory}/{action}/flatland_{action}XXXX.png
         dir = imageDirectory.child(action)
-        self.images[action] = Animation(dir.child("flatland_" + action + "{0:04}.png").path)
+        self.images[action] = Animation(dir.child("flatland_" + action + "{0:04}.png"))
 
     def load(self):
         for a in self.images:

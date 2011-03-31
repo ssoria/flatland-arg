@@ -12,7 +12,7 @@ def loadImage(path):
 
 class Image(object):
     def __init__(self, path):
-        self.path = path
+        self.path = path.path
 
     def load(self):
         self._image = loadImage(self.path)
