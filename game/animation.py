@@ -1,7 +1,7 @@
 from twisted.internet.task import LoopingCall
 import pygame
 
-def loadImage(path):
+def _loadImage(path):
     image = pygame.image.load(path)
     if image.get_at((0, 0))[3] == 0:
         image = image.convert_alpha()
@@ -15,7 +15,7 @@ class Image(object):
         self.path = path.path
 
     def load(self):
-        self._image = loadImage(self.path)
+        self._image = _loadImage(self.path)
         self._setCenter()
 
     def _setCenter(self):
@@ -35,7 +35,7 @@ class Animation(Image):
         self._images = {}
         while True:
             try:
-                self._images[i] = loadImage(self.path.format(i + 1))
+                self._images[i] = _loadImage(self.path.format(i + 1))
                 i += 1
             except Exception as e:
                 break
