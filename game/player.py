@@ -114,7 +114,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
     def breakArmor(self, sides, resources):
         # HACK waiting for other images
         if self.sides == 3:
-            animation = self.images["ArmorBreak", sides, resources]
+            animation = self.images["ArmorBreak", sides, resources].copy()
             animation.start(16).addCallback(lambda ign: self.events.remove(animation))
             self.events.add(animation)
 

@@ -12,7 +12,8 @@ def _loadImage(path):
 
 class Image(object):
     def __init__(self, path):
-        self.path = path.path
+        if path:
+            self.path = path.path
 
     def load(self):
         self._image = _loadImage(self.path)
@@ -51,6 +52,12 @@ class Animation(Image):
         self._imageIndex += 1
         if self._imageIndex == max:
             self._loopingCall.stop()
+
+    def copy(self):
+        animation = Animation(None)
+        animation.center = self.center
+        animation._images = self._images
+        return animation
 
 class LoopingAnimation(Animation):
     def _incrementImageIndex(self, max):
