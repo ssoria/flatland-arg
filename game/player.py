@@ -148,6 +148,11 @@ class Player(pb.Cacheable, pb.RemoteCache):
             return (255, 50, 0)
 
     def paint(self, view, position, isTeammate):
+        # HACK player image deviates from center of screen occasionally
+        # likely caused by view.center being updated but not player.position
+        # which must wait for the server to update its
+        if self.self:
+            position = Vector2D(240, 400)
         if isTeammate:
             try:
                 image = self.images[(self.self, self.team, self.sides)]
