@@ -36,6 +36,10 @@ class Images:
             self.images[("Enemy", t)] = Image(dir.child("FIXME_enemy{0}.png".format(teams[t])))
 
     def _initArmorImages(self, dir):
+        self.images["ArmorBreak", 3, 1] = Animation(dir.child("tri_armorbreak").child("tri1_armorbreak{0:04}.png"))
+        self.images["ArmorBreak", 3, 2] = Animation(dir.child("tri_armorbreak").child("tri2_armorbreak{0:04}.png"))
+        self.images["ArmorBreak", 3, 3] = Animation(dir.child("tri_armorbreak").child("tri3_armorbreak{0:04}.png"))
+
         dir = dir.child("armor")
         self.images[("Armor", 3, 1)] = Image(dir.child("tri").child("armor1_tri.png"))
         self.images[("Armor", 3, 2)] = Image(dir.child("tri").child("armor2_tri.png"))

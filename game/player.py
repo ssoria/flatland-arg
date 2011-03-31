@@ -63,6 +63,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self.action = None
         self.upgradingAt = None
         self.self = False
+        self.events = set()
 
     def _startScanning(self):
         self.scanning.start()
@@ -83,6 +84,8 @@ class Player(pb.Cacheable, pb.RemoteCache):
 
     def observe_trapped(self):
         if self.resources:
+            for i in range(self.resources, 0, -1):
+                self.breakArmor(self.sides, i)
             self.resources = 0
         else:
             self.sides = 0
@@ -108,8 +111,16 @@ class Player(pb.Cacheable, pb.RemoteCache):
         for o in self.observers: o.callRemote('loseResource')
     observe_loseResource = _loseResource
 
+    def breakArmor(self, sides, resources):
+        # HACK waiting for other images
+        if self.sides == 3:
+            animation = self.images["ArmorBreak", sides, resources]
+            animation.start(16).addCallback(lambda ign: self.events.remove(animation))
+            self.events.add(animation)
+
     def _hit(self):
         if self.resources:
+            self.breakArmor(self.sides, self.resources)
             self.resources -= 1
         else:
             self.sides -= 1
@@ -138,6 +149,8 @@ class Player(pb.Cacheable, pb.RemoteCache):
         # which must wait for the server to update its
         if self.self:
             position = Vector2D(240, 400)
+        # HACK save the view to get images
+        self.images = view.images.images
         if isTeammate:
             image = view.images.images[("Player", self.self, self.team, self.sides)]
             image.draw(view.screen, position)
@@ -145,6 +158,9 @@ class Player(pb.Cacheable, pb.RemoteCache):
             image = view.images.images[("Enemy", self.team)]
             image.draw(view.screen, position)
             return
+
+        for image in self.events:
+            image.draw(view.screen, position)
 
         if self.scanning:
             pygame.gfxdraw.filled_circle(view.screen, position.x, position.y, self.getScanRadius() * 10, pygame.Color(255, 0, 255, 150))
