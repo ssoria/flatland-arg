@@ -6,18 +6,11 @@ from twisted.spread import pb
 from vector import Vector2D
 from twisted.internet import reactor
 
-def drawArmor(screen, sides, resources, position):
-    i = 0
-    while i < resources:
-        endPosition = (position[0], position[1] + 10)
-        pygame.draw.line(screen, (0, 255, 0), position, endPosition, 7)
-        position = (position[0] + 10, position[1])
-        i += 1
-    while i < sides:
-        endPosition = (position[0], position[1] + 10)
-        pygame.draw.line(screen, (255, 0, 0), position, endPosition, 7)
-        position = (position[0] + 10, position[1])
-        i += 1
+def drawArmor(view, sides, resources, position):
+    if not resources:
+        return
+    image = view.images.images["Armor", sides, resources]
+    image.draw(view.screen, position)
 
 
 class PlayerScan:
@@ -47,6 +40,11 @@ class PlayerScan:
         if self._radius:
             return self._radius * (1 - (dt / 5000.0))
         return math.sqrt(dt / 200.0)
+
+    def __nonzero__(self):
+        if self.startTime == 0:
+            return False
+        return True
 
 
 class Player(pb.Cacheable, pb.RemoteCache):
@@ -148,7 +146,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
         if self.scanning:
             pygame.gfxdraw.filled_circle(view.screen, position.x, position.y, self.getScanRadius() * 10, pygame.Color(255, 0, 255, 150))
 
-        drawArmor(view.screen, self.sides, self.resources, position)
+        drawArmor(view, self.sides, self.resources, position)
 
     def getStateToCacheAndObserveFor(self, perspective, observer):
         self.observers.append(observer)
@@ -240,7 +238,7 @@ class Building(pb.Cacheable, pb.RemoteCache):
                 self.paintEnemySentry(view.screen, position)
         elif self.sides == 5:
             self.paintPolyFactory(view.screen, position)
-        drawArmor(view.screen, self.sides, self.resources, position)
+        drawArmor(view, self.sides, self.resources, position)
 
     def getStateToCacheAndObserveFor(self, perspective, observer):
         self.observers.append(observer)

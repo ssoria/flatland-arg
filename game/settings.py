@@ -10,7 +10,8 @@ class Images:
         self.images["resource_pool"] = LoopingAnimation(dir.child("ani_resources").child("resources{0:04}.png"))
         self.images["background"] = Image(dir.child("playing_field.png"))
 
-        self.initPlayerImages(dir)
+        self._initPlayerImages(dir)
+        self._initArmorImages(dir)
 
         actions = ["attack", "attack_blocked", "attack_hit", "attack_missed",
                    "building_created", "flatlined", "intro", "lose", "lvldown",
@@ -22,7 +23,7 @@ class Images:
         for a in actions:
             self._addFlatlandAnimation(dir, a)
 
-    def initPlayerImages(self, dir):
+    def _initPlayerImages(self, dir):
         dir = dir.child("team_players")
         teams = {1 : "blu", 2 : "red"}
         sides = {0 : "dot", 1 : "line", 2 : "cross", 3 : "tri", 4 : "sqr", 5 : "pent", 6 : "hex"}
@@ -33,6 +34,16 @@ class Images:
                     path = dir.child("{0}{1}_{2}.png".format(firstPerson[p], teams[t], sides[s]))
                     self.images[("Player", p, t, s)] = Image(path)
             self.images[("Enemy", t)] = Image(dir.child("FIXME_enemy{0}.png".format(teams[t])))
+
+    def _initArmorImages(self, dir):
+        dir = dir.child("armor")
+        self.images[("Armor", 3, 1)] = Image(dir.child("tri").child("armor1_tri.png"))
+        self.images[("Armor", 3, 2)] = Image(dir.child("tri").child("armor2_tri.png"))
+        self.images[("Armor", 3, 3)] = Image(dir.child("tri").child("armor3_tri.png"))
+        sides = {4 : "sqr", 5 : "pent", 6 : "hex"}
+        for i in sides:
+            for j in range(1, i + 1):
+                self.images["Armor", i, j] = Image(dir.child(sides[i]).child("FIXME_armor{0}.png".format(j)))
 
     def _addFlatlandAnimation(self, imageDirectory, action):
         # {imageDirectory}/{action}/flatland_{action}XXXX.png
