@@ -9,6 +9,9 @@ from twisted.internet import reactor
 def drawArmor(view, sides, resources, position):
     if not resources:
         return
+    # XXX using player armor for buildings
+    if sides < 3:
+        sides = 3
     image = view.images.images["Armor", sides, resources]
     image.draw(view.screen, position)
 
