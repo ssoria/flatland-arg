@@ -138,12 +138,8 @@ class Player(pb.Cacheable, pb.RemoteCache):
         if self.self:
             position = Vector2D(240, 400)
         if isTeammate:
-            try:
-                image = view.images.images[("Player", self.self, self.team, self.sides)]
-                image.draw(view.screen, position)
-            except Exception as e:
-                print e
-                pygame.draw.circle(view.screen, self._teamColor(), position, 10)
+            image = view.images.images[("Player", self.self, self.team, self.sides)]
+            image.draw(view.screen, position)
         else:
             pygame.draw.circle(view.screen, self._teamColor(), position, 10)
             return
