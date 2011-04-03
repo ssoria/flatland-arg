@@ -26,6 +26,9 @@ class Image(object):
         imagePosition = (position[0] - self.center[0], position[1] - self.center[1])
         screen.blit(self._image, imagePosition)
 
+    def copy(self):
+        return self
+
 class Animation(Image):
     @property
     def _image(self):
