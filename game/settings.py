@@ -13,7 +13,7 @@ class Images:
         self._initPlayerImages(dir)
         self._initArmorImages(dir)
 
-        actions = ["attack", "attack_blocked", "attack_hit", "attack_missed",
+        actions = ["attack_blocked", "attack_hit", "attack_missed",
                    "building_created", "flatlined", "intro", "lose", "lvldown",
                    "lvlup", "polyfactory", "polyfactory_upgrade",
                    "resource_full", "resource_out", "resourcegather",

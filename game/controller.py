@@ -68,7 +68,6 @@ class PlayerController(object):
         self._currentAction = action
         if self._currentAction == ATTACK:
             self.perspective.callRemote('startAttacking')
-            self.view.addAction("attack")
         elif self._currentAction == BUILD:
             self.perspective.callRemote('startBuilding')
         elif self._currentAction == SCAN:
