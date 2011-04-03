@@ -254,19 +254,18 @@ class Building(pb.Cacheable, pb.RemoteCache):
         size = 20
         pygame.gfxdraw.filled_circle(screen, position.x, position.y, size, self._teamColor())
     def paint(self, view, position, isTeammate):
-        if self.sides == 3:
-            if isTeammate:
-                view.images.images["trap_idle"].draw(view.screen, position)
-            else:
-                view.images.images[("enemyTraps", self.team)].draw(view.screen, position)
-        elif self.sides == 4:
-            if isTeammate:
-                view.images.images["sentry_idle"].draw(view.screen, position)
-            else:
-                self.paintEnemySentry(view.screen, position)
-        elif self.sides == 5:
-            self.paintPolyFactory(view.screen, position)
-        drawArmor(view, self.sides, self.resources, position)
+        if self.sides == 0 and self.resources == 0:
+            return
+        if not isTeammate:
+            return
+        if self.sides:
+            image = view.images.images["Building", self.sides]
+        else:
+            image = view.images.images["Building", self.resources]
+        image.draw(view.screen, position)
+        if self.isSentry():
+            view.images.images["SentryOverlay"].draw(view.screen, position)
+        #drawArmor(view, self.sides, self.resources, position)
 
     def getStateToCacheAndObserveFor(self, perspective, observer):
         self.observers.append(observer)

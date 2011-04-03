@@ -3,8 +3,12 @@ from animation import Image, Animation, LoopingAnimation
 class Images:
     def __init__(self, dir):
         self.images = dict()
-        self.images["sentry_idle"] = Image(dir.child("sentry_idle.png"))
-        self.images["trap_idle"] = Image(dir.child("trap_idle.png"))
+        self.images["Building", 1] = Image(dir.child("buildings").child("1_resource.png"))
+        self.images["Building", 2] = Image(dir.child("buildings").child("2_resource.png"))
+        self.images["Building", 3] = Image(dir.child("buildings").child("trap").child("bd_trap").child("bd_trap.png"))
+        self.images["Building", 4] = LoopingAnimation(dir.child("buildings").child("sentry").child("bd_sentry").child("bd_sentry{0:04}.png"))
+        self.images["SentryOverlay"] = LoopingAnimation(dir.child("buildings").child("sentry").child("sentry_sight").child("sentry_sight{0:04}.png"))
+        self.images["Building", 5] = LoopingAnimation(dir.child("buildings").child("polyfactory").child("bd_polyfactory").child("bd_polyfactory{0:04}.png"))
         self.images[("enemyTraps", 1)] = LoopingAnimation(dir.child("trap_teamblu").child("trap_teamblu{0:04}.png"))
         self.images[("enemyTraps", 2)] = LoopingAnimation(dir.child("trap_teamred").child("trap_teamred{0:04}.png"))
         self.images["resource_pool"] = LoopingAnimation(dir.child("ani_resources").child("resources{0:04}.png"))
@@ -61,3 +65,6 @@ class Images:
         self.images["resource_pool"].start(12)
         self.images[("enemyTraps", 1)].start(12)
         self.images[("enemyTraps", 2)].start(12)
+        self.images["Building", 4].start(24)
+        self.images["Building", 5].start(24)
+        self.images["SentryOverlay"].start(24)
