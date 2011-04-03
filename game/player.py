@@ -155,7 +155,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
             image = view.images.images[("Player", self.self, self.team, self.sides)]
             image.draw(view.screen, position)
         else:
-            image = view.images.images[("Enemy", self.team)]
+            image = view.images.images["Enemy"]
             image.draw(view.screen, position)
             return
 
