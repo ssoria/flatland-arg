@@ -111,6 +111,15 @@ class Player(pb.Cacheable, pb.RemoteCache):
         for o in self.observers: o.callRemote('loseResource')
     observe_loseResource = _loseResource
 
+    def _attack(self):
+        animation = self.images["Attack"].copy()
+        animation.start(12).addCallback(lambda ign: self.events.remove(animation))
+        self.events.add(animation)
+    def attack(self):
+        self._attack()
+        for o in self.observers: o.callRemote('attack')
+    observe_attack = _attack
+
     def breakArmor(self, sides, resources):
         # HACK waiting for other images
         if self.sides == 3:

@@ -57,6 +57,7 @@ class Environment(pb.Cacheable, pb.RemoteCache):
 
     def attack(self, player):
         distance = 3
+        player.attack()
         for p in self.players.itervalues():
             if (p.team != player.team) and (p.position - player.position) < distance:
                 p.hit()
