@@ -263,9 +263,12 @@ class Building(pb.Cacheable, pb.RemoteCache):
         else:
             image = view.images.images["Building", self.resources]
         image.draw(view.screen, position)
+
+        if self.sides:
+            view.images.images["BuildingHealth", self.team, self.sides, self.resources].draw(view.screen, position)
+
         if self.isSentry():
             view.images.images["SentryOverlay"].draw(view.screen, position)
-        #drawArmor(view, self.sides, self.resources, position)
 
     def getStateToCacheAndObserveFor(self, perspective, observer):
         self.observers.append(observer)
