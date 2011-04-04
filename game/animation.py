@@ -3,7 +3,8 @@ import pygame
 
 def _loadImage(path):
     image = pygame.image.load(path)
-    if image.get_at((0, 0))[3] == 0:
+    # XXX Are all of our images alpha'd now?
+    if True:
         image = image.convert_alpha()
     else:
         image = image.convert()
