@@ -42,7 +42,7 @@ class PlayerScan:
         dt = (pygame.time.get_ticks() - self.startTime)
         if self._radius:
             return self._radius * (1 - (dt / 5000.0))
-        return math.sqrt(dt / 200.0)
+        return math.log1p((dt / 30000.0) / (math.e - 1))
 
     def __nonzero__(self):
         if self.startTime == 0:
@@ -172,7 +172,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
             image.draw(view.screen, position)
 
         if self.scanning:
-            pygame.gfxdraw.filled_circle(view.screen, position.x, position.y, self.getScanRadius() * 10, pygame.Color(255, 0, 255, 150))
+            view.images.images["PlayerScan"].drawScaled(view.screen, position, self.getScanRadius())
 
         drawArmor(view, self.sides, self.resources, position)
 

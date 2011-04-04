@@ -1,5 +1,6 @@
 from twisted.internet.task import LoopingCall
 import pygame
+import numpy
 
 def _loadImage(path):
     image = pygame.image.load(path)
@@ -21,11 +22,17 @@ class Image(object):
         self._setCenter()
 
     def _setCenter(self):
-        self.center = self._image.get_rect().center
+        self.center = numpy.array(self._image.get_rect().center)
 
     def draw(self, screen, position):
         imagePosition = (position[0] - self.center[0], position[1] - self.center[1])
         screen.blit(self._image, imagePosition)
+
+    def drawScaled(self, screen, position, scale):
+        center = self.center * scale
+        image = pygame.transform.smoothscale(self._image, center * 2)
+        imagePosition = (position[0] - center[0], position[1] - center[1])
+        screen.blit(image, imagePosition)
 
     def copy(self):
         return self

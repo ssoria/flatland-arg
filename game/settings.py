@@ -24,6 +24,7 @@ class Images:
             self._addFlatlandAnimation(dir, a)
 
     def _initPlayerImages(self, dir):
+        self.images["PlayerScan"] = Image(dir.child("player_scan.png"))
         dir = dir.child("team_players")
         teams = {1 : "blu", 2 : "red"}
         sides = {0 : "dot", 1 : "line", 2 : "cross", 3 : "tri", 4 : "sqr", 5 : "pent", 6 : "hex"}
