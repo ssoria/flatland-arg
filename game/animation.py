@@ -60,6 +60,9 @@ class Animation(Image):
         self._loopingCall = LoopingCall(self._incrementImageIndex, len(self._images))
         return self._loopingCall.start(1.0 / fps)
 
+    def stop(self):
+        self._loopingCall.stop()
+
     def _incrementImageIndex(self, max):
         self._imageIndex += 1
         if self._imageIndex == max:
