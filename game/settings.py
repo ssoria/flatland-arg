@@ -44,7 +44,7 @@ class Images:
         self.images["Building", 4] = LoopingAnimation(buildingsDir.child("sentry").child("bd_sentry").child("bd_sentry{0:04}.png"))
         self.images["SentryOverlay"] = LoopingAnimation(buildingsDir.child("sentry").child("sentry_sight").child("sentry_sight{0:04}.png"))
         self.images["Building", 5] = LoopingAnimation(buildingsDir.child("polyfactory").child("bd_polyfactory").child("bd_polyfactory{0:04}.png"))
-        #self.images["TrapExplosion"] = Animation(buildingsDir.child("trap").child("trap_explosion").child("trap_explosion{0:04}.png"))
+        self.images["TrapExplosion"] = LoopingAnimation(buildingsDir.child("trap").child("trap_explosion").child("trap_explosion{0:04}.png"), (0, -150))
 
         teams = {1 : "blu", 2 : "red"}
         offsets = {3 : (0, 30), 4 : (0, 55), 5 : (0, 80)}

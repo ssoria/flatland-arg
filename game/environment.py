@@ -107,7 +107,7 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         for b in self.buildings.itervalues():
             if b.isTrap() and (b.team != player.team) and ((b.position - player.position) < 1):
                 player.trapped()
-                self.destroyBuilding(b)
+                b.explode()
                 break
     def observe_updatePlayerPosition(self, playerId, position):
         self.players[playerId].position = position
@@ -132,7 +132,9 @@ class Environment(pb.Cacheable, pb.RemoteCache):
 
     def paint(self, view):
         for b in self.buildings.itervalues():
-            if self.isVisible(b):
+            # HACK save the view to get images
+            b.images = view.images.images
+            if self.isVisible(b) or b.explosion:
                 b.paint(view, view.screenCoord(b.position), b.team == self.team)
         self.rp.paint(view, view.screenCoord(self.rp.position))
         for p in self.players.itervalues():

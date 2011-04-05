@@ -138,12 +138,6 @@ class Player(pb.Cacheable, pb.RemoteCache):
         for o in self.observers: o.callRemote('levelUp')
     observe_levelUp = _levelUp
 
-    def _teamColor(self):
-        if self.team == 1:
-            return (0, 50, 255)
-        else:
-            return (255, 50, 0)
-
     def paint(self, view, position, isTeammate):
         # HACK player image deviates from center of screen occasionally
         # likely caused by view.center being updated but not player.position
@@ -195,6 +189,7 @@ class Building(pb.Cacheable, pb.RemoteCache):
         self.size = 1
         self.onDestroyed = defer.Deferred()
         self.upgrading = None
+        self.explosion = None
 
     def build(self, player):
         if not player.resources:
@@ -234,20 +229,11 @@ class Building(pb.Cacheable, pb.RemoteCache):
     def observe_setResources(self, r):
         self.resources = r
 
-    # TODO!!!
-    def _teamColor(self):
-        if self.team == 1:
-            return pygame.Color(255, 0, 255, 150)
-        else:
-            return pygame.Color(0, 255, 255, 150)
-
-    def paintEnemySentry(self, screen, position):
-        size = 20
-        pygame.gfxdraw.filled_circle(screen, position.x, position.y, size, self._teamColor())
-    def paintPolyFactory(self, screen, position):
-        size = 20
-        pygame.gfxdraw.filled_circle(screen, position.x, position.y, size, self._teamColor())
     def paint(self, view, position, isTeammate):
+        if self.explosion:
+           self.explosion.draw(view.screen, position)
+           return
+
         if self.sides == 0 and self.resources == 0:
             return
 
@@ -261,10 +247,10 @@ class Building(pb.Cacheable, pb.RemoteCache):
             image = view.images.images["Building", self.resources].draw(view.screen, position)
 
         if not isTeammate:
-            offsets = {0 : Vector2D(0, 60),
-                       3 : Vector2D(0, 70),
-                       4 : Vector2D(0, 95),
-                       5 : Vector2D(0, 100)}
+            offsets = {0 : Vector2D(0, 70),
+                       3 : Vector2D(0, 80),
+                       4 : Vector2D(0, 105),
+                       5 : Vector2D(0, 110)}
             view.images.images["EnemyBuilding", self.team].draw(view.screen, position - offsets[self.sides])
 
     def getStateToCacheAndObserveFor(self, perspective, observer):
@@ -283,8 +269,18 @@ class Building(pb.Cacheable, pb.RemoteCache):
             self.resources -= 1
             for o in self.observers: o.callRemote('setResources', self.resources)
 
+    def _explode(self):
+        self.explosion = self.images["TrapExplosion"].copy()
+        self.explosion.start(24).addCallback(lambda ign: self.onDestroyed.callback(self))
+    def explode(self):
+        self._explode()
+        for o in self.observers: o.callRemote('explode')
+    observe_explode = _explode
+
     def isTrap(self):
-        return self.sides == 3
+        if self.sides == 3 and not self.explosion:
+            return True
+        return False
 
     def isSentry(self):
         return self.sides == 4
