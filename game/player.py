@@ -6,16 +6,6 @@ from twisted.spread import pb
 from vector import Vector2D
 from twisted.internet import reactor
 
-def drawArmor(view, sides, resources, position):
-    if not resources:
-        return
-    # XXX using player armor for buildings
-    if sides < 3:
-        sides = 3
-    image = view.images.images["Armor", sides, resources]
-    image.draw(view.screen, position)
-
-
 class PlayerScan:
     def __init__(self):
         self.reset()
@@ -56,7 +46,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
         #pb.RemoteCache.__init__(self)
         self.position = Vector2D(0, 0)
         self.sides = 3
-        self.resources = 1
+        self.resources = 0
         self.observers = []
         self.scanning = PlayerScan()
         self.size = 1
@@ -64,6 +54,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self.upgradingAt = None
         self.self = False
         self.events = set()
+        self.armor = dict()
 
     def _startScanning(self):
         self.scanning.start()
@@ -98,6 +89,9 @@ class Player(pb.Cacheable, pb.RemoteCache):
             self.sides += 1
         elif self.resources < self.sides:
             self.resources += 1
+            animation = self.images["ArmorBreak", self.sides, self.resources].copy()
+            animation.startReversed(24)
+            self.armor[self.resources] = animation
     def gainResource(self):
         self._gainResource()
         for o in self.observers: o.callRemote('gainResource')
@@ -105,6 +99,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
     
     def _loseResource(self):
         if self.resources:
+            self.breakArmor(self.sides, self.resources)
             self.resources -= 1
     def loseResource(self):
         self._loseResource()
@@ -121,11 +116,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
     observe_attack = _attack
 
     def breakArmor(self, sides, resources):
-        # HACK waiting for other images
-        if self.sides == 3:
-            animation = self.images["ArmorBreak", sides, resources].copy()
-            animation.start(16).addCallback(lambda ign: self.events.remove(animation))
-            self.events.add(animation)
+        self.armor[resources].start(24)
 
     def _hit(self):
         if self.resources:
@@ -139,6 +130,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
     observe_hit = _hit
 
     def _levelUp(self):
+        self.armor.clear()
         self.resources = 0
         self.sides += 1
     def levelUp(self):
@@ -175,7 +167,8 @@ class Player(pb.Cacheable, pb.RemoteCache):
             image.draw(view.screen, position)
             return
 
-        drawArmor(view, self.sides, self.resources, position)
+        for a in self.armor:
+            self.armor[a].draw(view.screen, position)
 
     def getStateToCacheAndObserveFor(self, perspective, observer):
         self.observers.append(observer)

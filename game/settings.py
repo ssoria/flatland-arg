@@ -60,9 +60,17 @@ class Images:
                     self.images["BuildingHealth", t, sides, resources] = Image(path, offset)
 
     def _initArmorImages(self, dir):
-        self.images["ArmorBreak", 3, 1] = Animation(dir.child("tri_armorbreak").child("tri1_armorbreak{0:04}.png"))
-        self.images["ArmorBreak", 3, 2] = Animation(dir.child("tri_armorbreak").child("tri2_armorbreak{0:04}.png"))
-        self.images["ArmorBreak", 3, 3] = Animation(dir.child("tri_armorbreak").child("tri3_armorbreak{0:04}.png"))
+        shapes = {3 : "tri",
+                  4 : "sqr",
+                  5 : "pent",
+                  6 : "hex"}
+        armorBreakDir = dir.child("armorbreak")
+        for sides in shapes:
+            shapeDir = armorBreakDir.child(shapes[sides])
+            for resources in range(1, sides + 1):
+                imgName = "{0}_armorbreak{1}".format(shapes[sides], resources)
+                path = shapeDir.child(imgName).child(imgName + "{0:04}.png")
+                self.images["ArmorBreak", sides, resources] = Animation(path)
 
         dir = dir.child("armor")
         self.images[("Armor", 3, 1)] = Image(dir.child("tri").child("armor1_tri.png"))
