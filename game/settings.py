@@ -47,14 +47,16 @@ class Images:
         #self.images["TrapExplosion"] = Animation(buildingsDir.child("trap").child("trap_explosion").child("trap_explosion{0:04}.png"))
 
         teams = {1 : "blu", 2 : "red"}
+        offsets = {3 : (0, 30), 4 : (0, 55), 5 : (0, 80)}
         healthDir = dir.child("building_health")
         for t in teams:
             teamDir = healthDir.child("team{0}".format(teams[t]))
             for sides in range(3, 6):
                 buildingDir = teamDir.child("health{0}".format(sides))
+                offset = offsets[sides]
                 for resources in range(0, sides + 1):
                     path = buildingDir.child("health{0}_{1}of{2}.png".format(teams[t], resources, sides))
-                    self.images["BuildingHealth", t, sides, resources] = Image(path)
+                    self.images["BuildingHealth", t, sides, resources] = Image(path, offset)
 
     def _initArmorImages(self, dir):
         self.images["ArmorBreak", 3, 1] = Animation(dir.child("tri_armorbreak").child("tri1_armorbreak{0:04}.png"))
