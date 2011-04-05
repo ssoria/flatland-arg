@@ -1,6 +1,7 @@
 from twisted.internet.task import LoopingCall
 import pygame
 import numpy
+import itertools
 
 def _loadImage(path):
     image = pygame.image.load(path)
@@ -39,34 +40,34 @@ class Image(object):
         return self
 
 class Animation(Image):
-    @property
-    def _image(self):
-        return self._images[self._imageIndex]
-
     def load(self):
-        i = 0
-        self._images = {}
+        i = 1
+        self._images = []
         while True:
             try:
-                self._images[i] = _loadImage(self.path.format(i + 1))
+                self._images.append(_loadImage(self.path.format(i)))
                 i += 1
             except Exception as e:
                 break
-        self._imageIndex = 0
+        self._image = self._images[0]
         self._setCenter()
 
     def start(self, fps):
-        self._imageIndex = 0
-        self._loopingCall = LoopingCall(self._incrementImageIndex, len(self._images))
+        self._loopingCall = LoopingCall(self._nextImage, iter(self._images))
+        return self._loopingCall.start(1.0 / fps)
+
+    def startReversed(self, fps):
+        self._loopingCall = LoopingCall(self._nextImage, reversed(self._images))
         return self._loopingCall.start(1.0 / fps)
 
     def stop(self):
         self._loopingCall.stop()
 
-    def _incrementImageIndex(self, max):
-        self._imageIndex += 1
-        if self._imageIndex == max:
-            self._loopingCall.stop()
+    def _nextImage(self, iterator):
+        try:
+            self._image = iterator.next()
+        except StopIteration:
+            self.stop()
 
     def copy(self):
         animation = Animation(None)
@@ -75,5 +76,6 @@ class Animation(Image):
         return animation
 
 class LoopingAnimation(Animation):
-    def _incrementImageIndex(self, max):
-        self._imageIndex = (self._imageIndex + 1) % max
+    def start(self, fps):
+        self._loopingCall = LoopingCall(self._nextImage, itertools.cycle(self._images))
+        return self._loopingCall.start(1.0 / fps)
