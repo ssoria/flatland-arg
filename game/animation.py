@@ -13,9 +13,10 @@ def _loadImage(path):
     return image
 
 class Image(object):
-    def __init__(self, path):
+    def __init__(self, path, offset = (0,0)):
         if path:
             self.path = path.path
+        self.offset = numpy.array(offset)
 
     def load(self):
         self._image = _loadImage(self.path)
@@ -25,7 +26,7 @@ class Image(object):
         self.center = numpy.array(self._image.get_rect().center)
 
     def draw(self, screen, position):
-        imagePosition = (position[0] - self.center[0], position[1] - self.center[1])
+        imagePosition = (position[0], position[1]) - self.center + self.offset
         screen.blit(self._image, imagePosition)
 
     def drawScaled(self, screen, position, scale):
