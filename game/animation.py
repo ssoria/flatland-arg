@@ -73,6 +73,7 @@ class Animation(Image):
         animation = Animation(None)
         animation.center = self.center
         animation._images = self._images
+        animation.offset = self.offset
         return animation
 
 class LoopingAnimation(Animation):
