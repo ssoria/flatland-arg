@@ -50,6 +50,7 @@ class Images:
         offsets = {3 : (0, 30), 4 : (0, 55), 5 : (0, 80)}
         healthDir = dir.child("building_health")
         for t in teams:
+            self.images["EnemyBuilding", t] = LoopingAnimation(dir.child("tooltip").child("team{0}".format(teams[t])).child("tt{0}_enemy".format(teams[t])).child("tt{0}_enemy".format(teams[t]) + "{0:04}.png"))
             teamDir = healthDir.child("team{0}".format(teams[t]))
             for sides in range(3, 6):
                 buildingDir = teamDir.child("health{0}".format(sides))
@@ -86,3 +87,5 @@ class Images:
         self.images["Building", 4].start(24)
         self.images["Building", 5].start(24)
         self.images["SentryOverlay"].start(24)
+        self.images["EnemyBuilding", 1].start(24)
+        self.images["EnemyBuilding", 2].start(24)

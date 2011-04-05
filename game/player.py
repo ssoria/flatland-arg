@@ -267,6 +267,13 @@ class Building(pb.Cacheable, pb.RemoteCache):
         else:
             image = view.images.images["Building", self.resources].draw(view.screen, position)
 
+        if not isTeammate:
+            offsets = {0 : Vector2D(0, 60),
+                       3 : Vector2D(0, 70),
+                       4 : Vector2D(0, 95),
+                       5 : Vector2D(0, 100)}
+            view.images.images["EnemyBuilding", self.team].draw(view.screen, position - offsets[self.sides])
+
     def getStateToCacheAndObserveFor(self, perspective, observer):
         self.observers.append(observer)
         state = pb.Cacheable.getStateToCopyFor(self, perspective).copy()
