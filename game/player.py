@@ -160,6 +160,13 @@ class Player(pb.Cacheable, pb.RemoteCache):
             position = Vector2D(240, 400)
         # HACK save the view to get images
         self.images = view.images.images
+
+        if isTeammate and self.scanning:
+            view.images.images["PlayerScan"].drawScaled(view.screen, position, self.getScanRadius())
+
+        for image in self.events:
+            image.draw(view.screen, position)
+
         if isTeammate:
             image = view.images.images[("Player", self.self, self.team, self.sides)]
             image.draw(view.screen, position)
@@ -167,12 +174,6 @@ class Player(pb.Cacheable, pb.RemoteCache):
             image = view.images.images["Enemy"]
             image.draw(view.screen, position)
             return
-
-        for image in self.events:
-            image.draw(view.screen, position)
-
-        if self.scanning:
-            view.images.images["PlayerScan"].drawScaled(view.screen, position, self.getScanRadius())
 
         drawArmor(view, self.sides, self.resources, position)
 
@@ -256,19 +257,15 @@ class Building(pb.Cacheable, pb.RemoteCache):
     def paint(self, view, position, isTeammate):
         if self.sides == 0 and self.resources == 0:
             return
-        if not isTeammate:
-            return
-        if self.sides:
-            image = view.images.images["Building", self.sides]
-        else:
-            image = view.images.images["Building", self.resources]
-        image.draw(view.screen, position)
-
-        if self.sides:
-            view.images.images["BuildingHealth", self.team, self.sides, self.resources].draw(view.screen, position)
 
         if self.isSentry():
             view.images.images["SentryOverlay"].draw(view.screen, position)
+
+        if self.sides:
+            view.images.images["Building", self.sides].draw(view.screen, position)
+            view.images.images["BuildingHealth", self.team, self.sides, self.resources].draw(view.screen, position)
+        else:
+            image = view.images.images["Building", self.resources].draw(view.screen, position)
 
     def getStateToCacheAndObserveFor(self, perspective, observer):
         self.observers.append(observer)
