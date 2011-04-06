@@ -32,7 +32,7 @@ class PlayerScan:
         dt = (pygame.time.get_ticks() - self.startTime)
         if self._radius:
             return self._radius * (1 - (dt / 5000.0))
-        return math.log1p((dt / 30000.0) / (math.e - 1))
+        return (math.log1p(min(1, (dt / 10000.0) / (math.e - 1))) * .65) + 0.35
 
     def __nonzero__(self):
         if self.startTime == 0:

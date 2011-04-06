@@ -121,12 +121,12 @@ class Environment(pb.Cacheable, pb.RemoteCache):
             return True
         # Object in range of my sentries
         for b in self.buildings.itervalues():
-            if b.isSentry() and (b.team == self.team) and (entity.position - b.position) < 13:
+            if b.isSentry() and (b.team == self.team) and (entity.position - b.position) < 13.75:
                 return True
         # object in range of a scanning player
         for p in self.players.itervalues():
             if (self.team == p.team):
-                if (entity.position - p.position) < p.getScanRadius():
+                if (entity.position - p.position) < p.getScanRadius() * 12.35:
                     return True
         return False
 
