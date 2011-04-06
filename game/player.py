@@ -162,6 +162,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
             return
 
         for a in self.armor:
+            # XXX Must start all clients at the same time or armor is Unpersistable
             self.armor[a].draw(view.screen, position)
 
     def getStateToCacheAndObserveFor(self, perspective, observer):
@@ -271,9 +272,9 @@ class Building(pb.Cacheable, pb.RemoteCache):
 
     def _explode(self):
         self.explosion = self.images["TrapExplosion"].copy()
-        self.explosion.start(24).addCallback(lambda ign: self.onDestroyed.callback(self))
+        return self.explosion.start(24)
     def explode(self):
-        self._explode()
+        self._explode().addCallback(lambda ign: self.onDestroyed.callback(self))
         for o in self.observers: o.callRemote('explode')
     observe_explode = _explode
 

@@ -25,16 +25,18 @@ class Images:
 
     def _initPlayerImages(self, dir):
         self.images["PlayerScan"] = Image(dir.child("player_scan.png"))
-        dir = dir.child("team_players")
+        teamDir = dir.child("team_players")
         teams = {1 : "blu", 2 : "red"}
-        sides = {0 : "dot", 1 : "line", 2 : "cross", 3 : "tri", 4 : "sqr", 5 : "pent", 6 : "hex"}
+        sides = {1 : "line", 2 : "cross", 3 : "tri", 4 : "sqr", 5 : "pent", 6 : "hex"}
         firstPerson = {True : "player", False : "team"}
         for t in teams:
-            for s in sides:
-                for p in firstPerson:
-                    path = dir.child("{0}{1}_{2}.png".format(firstPerson[p], teams[t], sides[s]))
+            for p in firstPerson:
+                imgName = "{0}{1}_death".format(firstPerson[p], teams[t])
+                self.images["Player", p, t, 0] = LoopingAnimation(dir.child("death").child(imgName).child(imgName + "{0:04}.png"))
+                for s in sides:
+                    path = teamDir.child("{0}{1}_{2}.png".format(firstPerson[p], teams[t], sides[s]))
                     self.images[("Player", p, t, s)] = Image(path)
-        self.images["Enemy"] = Image(dir.child("enemyid_hidden.png"))
+        self.images["Enemy"] = Image(teamDir.child("enemyid_hidden.png"))
 
     def _initBuildingImages(self, dir):
         buildingsDir = dir.child("buildings")
@@ -97,3 +99,7 @@ class Images:
         self.images["SentryOverlay"].start(24)
         self.images["EnemyBuilding", 1].start(24)
         self.images["EnemyBuilding", 2].start(24)
+        self.images["Player", True, 1, 0].start(24)
+        self.images["Player", True, 2, 0].start(24)
+        self.images["Player", False, 1, 0].start(24)
+        self.images["Player", False, 2, 0].start(24)
