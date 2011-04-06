@@ -54,6 +54,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self.upgradingAt = None
         self.self = False
         self.events = set()
+        self.topEvents = set()
         self.armor = dict()
 
     def _startScanning(self):
@@ -123,6 +124,13 @@ class Player(pb.Cacheable, pb.RemoteCache):
             self.breakArmor(self.sides, self.resources)
             self.resources -= 1
         else:
+            # XXX Need other LevelDown animations
+            try:
+                animation = self.images["LevelDown", self.team, self.sides].copy()
+                animation.start(12).addCallback(lambda ign: self.topEvents.remove(animation))
+                self.topEvents.add(animation)
+            except:
+                pass
             self.sides -= 1
     def hit(self):
         self._hit()
@@ -160,6 +168,9 @@ class Player(pb.Cacheable, pb.RemoteCache):
             image = view.images.images["Enemy"]
             image.draw(view.screen, position)
             return
+
+        for image in self.topEvents:
+            image.draw(view.screen, position)
 
         for a in self.armor:
             # XXX Must start all clients at the same time or armor is Unpersistable

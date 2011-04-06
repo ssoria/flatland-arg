@@ -8,6 +8,7 @@ class Images:
         self.images["resource_pool"] = LoopingAnimation(dir.child("ani_resources").child("resources{0:04}.png"))
         self.images["background"] = Image(dir.child("playing_field.png"))
         self.images["Attack"] = Animation(dir.child("attack").child("attack{0:04}.png"))
+        self.images["LevelDown", 1, 6] = Animation(dir.child("lvl_down").child("teamblu").child("hex_lvldown").child("hex_lvldown{0:04}.png"))
 
         self._initPlayerImages(dir)
         self._initBuildingImages(dir)
