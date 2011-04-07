@@ -48,6 +48,8 @@ class Images:
         self.images["SentryOverlay"] = LoopingAnimation(buildingsDir.child("sentry").child("sentry_sight").child("sentry_sight{0:04}.png"))
         self.images["Building", 5] = LoopingAnimation(buildingsDir.child("polyfactory").child("bd_polyfactory").child("bd_polyfactory{0:04}.png"))
         self.images["TrapExplosion"] = LoopingAnimation(buildingsDir.child("trap").child("trap_explosion").child("trap_explosion{0:04}.png"), (0, -150))
+        self.images["SelfBuilding"] = Animation(dir.child("tooltip").child("neutral").child("tt_building").child("tt_building{0:04}.png"))
+        self.images["SelfMining"] = Animation(dir.child("tooltip").child("neutral").child("tt_resource_gain").child("tt_resource_gain{0:04}.png"))
 
         teams = {1 : "blu", 2 : "red"}
         offsets = {3 : (0, 30), 4 : (0, 55), 5 : (0, 80)}

@@ -66,7 +66,7 @@ class Environment(pb.Cacheable, pb.RemoteCache):
                 b.hit()
 
     def startAttacking(self, player):
-        player.action = LoopingCall(self.attack, player)
+        player.setAction("Attacking", LoopingCall(self.attack, player))
         player.action.start(2, now=False)
 
     def startBuilding(self, player):
@@ -76,13 +76,17 @@ class Environment(pb.Cacheable, pb.RemoteCache):
                 player.updatePosition(player.position, building)
             else:
                 return
-        player.action = LoopingCall(player.building.build, player)
+        if player.building == self.rp:
+            action = "Mining"
+        else:
+            action = "Building"
+        player.setAction(action, LoopingCall(player.building.build, player))
         player.action.start(2, now=False)
     
     def finishAction(self, player):
         if player.action:
             player.action.stop()
-            player.action = None
+            player.setAction(None, None)
 
     def startUpgrading(self, player):
         for b in self.buildings.itervalues():

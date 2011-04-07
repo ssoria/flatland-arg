@@ -58,6 +58,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self.armor = dict()
         self.building = None
         self._buildingReset = None
+        self.tooltip = None
 
     def _startScanning(self):
         self.scanning.start()
@@ -86,6 +87,19 @@ class Player(pb.Cacheable, pb.RemoteCache):
     def trapped(self):
         self.observe_trapped()
         for o in self.observers: o.callRemote('trapped')
+
+    def setAction(self, remote, local):
+        self.action = local
+        for o in self.observers: o.callRemote('setAction', remote)
+    def observe_setAction(self, action):
+        if action == "Building" and self.resources:
+            self.tooltip = self.images["SelfBuilding"].copy()
+            self.tooltip.start(12)
+        elif action == "Mining" and self.resources != self.sides:
+            self.tooltip = self.images["SelfMining"].copy()
+            self.tooltip.start(12)
+        else:
+            self.tooltip = None
 
     def _gainResource(self):
         if self.sides < 3:
@@ -182,13 +196,14 @@ class Player(pb.Cacheable, pb.RemoteCache):
         if isTeammate:
             image = view.images.images[("Player", self.self, self.team, self.sides)]
             image.draw(view.screen, position)
+            for image in self.topEvents:
+                image.draw(view.screen, position)
+            if self.tooltip:
+                self.tooltip.draw(view.screen, position + Vector2D(0, -100))
         else:
             image = view.images.images["Enemy"]
             image.draw(view.screen, position)
             return
-
-        for image in self.topEvents:
-            image.draw(view.screen, position)
 
         for a in self.armor:
             # XXX Must start all clients at the same time or armor is Unpersistable
@@ -231,9 +246,10 @@ class Building(pb.Cacheable, pb.RemoteCache):
                     self.upgrading.levelUp()
                 else:
                     self.upgrading.gainResource()
-            return
-        player.loseResource()
-        self.gainResource()
+        else:
+            player.loseResource()
+            self.gainResource()
+        for o in player.observers: o.callRemote('setAction', "Building")
 
     def _gainResource(self):
         # Not a full polyfactory
@@ -331,6 +347,7 @@ class ResourcePool(pb.Copyable, pb.RemoteCopy):
 
     def build(self, player):
         player.gainResource()
+        for o in player.observers: o.callRemote('setAction', "Mining")
 
     def addBuilder(self, player):
         pass
