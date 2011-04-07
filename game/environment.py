@@ -70,18 +70,13 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         player.action.start(2, now=False)
 
     def startBuilding(self, player):
-        building = None
-        for b in self.buildings.itervalues():
-            if (player.team == b.team) and (b.position - player.position) < 3:
-                building = b
-        if not building:
-            if (self.rp.position - player.position) < 3:
-                building = self.rp
+        if not player.building:
+            building = self.createBuilding(player.team, player.position)
+            if building:
+                player.updatePosition(player.position, building)
             else:
-                building = self.createBuilding(player.team, player.position)
-                if not building:
-                    return
-        player.action = LoopingCall(building.build, player)
+                return
+        player.action = LoopingCall(player.building.build, player)
         player.action.start(2, now=False)
     
     def finishAction(self, player):
@@ -101,16 +96,21 @@ class Environment(pb.Cacheable, pb.RemoteCache):
             player.upgradingAt = None
 
     def updatePlayerPosition(self, player, position):
-        player.position = position
-        for o in self.observers: o.callRemote('updatePlayerPosition', id(player), position)
+        building = None
+        for b in self.buildings.itervalues():
+            if (player.team == b.team) and (b.position - position) < 3:
+                building = b
+                break
+        if not building:
+            if (self.rp.position - position) < 3:
+                building = self.rp
+        player.updatePosition(position, building)            
 
         for b in self.buildings.itervalues():
             if b.isTrap() and (b.team != player.team) and ((b.position - player.position) < 1):
                 player.trapped()
                 b.explode()
                 break
-    def observe_updatePlayerPosition(self, playerId, position):
-        self.players[playerId].position = position
 
     def isVisible(self, entity):
         # Spectators see all
@@ -138,6 +138,8 @@ class Environment(pb.Cacheable, pb.RemoteCache):
                 b.paint(view, view.screenCoord(b.position), b.team == self.team)
         self.rp.paint(view, view.screenCoord(self.rp.position))
         for p in self.players.itervalues():
+            if p.self and p.building:
+                p.building.drawToolTip(view, "Build", p.team)
             p.paint(view, view.screenCoord(p.position), self.isVisible(p))
 
     # pb.Cacheable stuff

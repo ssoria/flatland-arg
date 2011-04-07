@@ -53,6 +53,9 @@ class Images:
         offsets = {3 : (0, 30), 4 : (0, 55), 5 : (0, 80)}
         healthDir = dir.child("building_health")
         for t in teams:
+            self.images["Upgrade", t] = LoopingAnimation(dir.child("tooltip").child("team{0}".format(teams[t])).child("tt{0}_upgrade".format(teams[t])).child("tt{0}_upgrade".format(teams[t]) + "{0:04}.png"))
+            self.images["Build", t] = LoopingAnimation(dir.child("tooltip").child("team{0}".format(teams[t])).child("tt{0}_build".format(teams[t])).child("tt{0}_build".format(teams[t]) + "{0:04}.png"))
+            self.images["HarvestResources", t] = LoopingAnimation(dir.child("tooltip").child("team{0}".format(teams[t])).child("tt{0}_resource".format(teams[t])).child("tt{0}_resource".format(teams[t]) + "{0:04}.png"))
             self.images["EnemyBuilding", t] = LoopingAnimation(dir.child("tooltip").child("team{0}".format(teams[t])).child("tt{0}_enemy".format(teams[t])).child("tt{0}_enemy".format(teams[t]) + "{0:04}.png"))
             teamDir = healthDir.child("team{0}".format(teams[t]))
             for sides in range(3, 6):
@@ -98,9 +101,10 @@ class Images:
         self.images["Building", 4].start(24)
         self.images["Building", 5].start(24)
         self.images["SentryOverlay"].start(24)
-        self.images["EnemyBuilding", 1].start(24)
-        self.images["EnemyBuilding", 2].start(24)
-        self.images["Player", True, 1, 0].start(24)
-        self.images["Player", True, 2, 0].start(24)
-        self.images["Player", False, 1, 0].start(24)
-        self.images["Player", False, 2, 0].start(24)
+        for t in [1, 2]:
+            self.images["Upgrade", t].start(24)
+            self.images["Build", t].start(24)
+            self.images["HarvestResources", t].start(24)
+            self.images["EnemyBuilding", t].start(24)
+            self.images["Player", True, t, 0].start(24)
+            self.images["Player", False, t, 0].start(24)

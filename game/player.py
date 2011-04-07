@@ -56,6 +56,8 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self.events = set()
         self.topEvents = set()
         self.armor = dict()
+        self.building = None
+        self._buildingReset = None
 
     def _startScanning(self):
         self.scanning.start()
@@ -115,6 +117,22 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self._attack()
         for o in self.observers: o.callRemote('attack')
     observe_attack = _attack
+
+    def _updatePosition(self, position, building):
+        self.position = position
+        # XXX only need this for self.self
+        def buildingReset():
+            self.building = None
+            self._buildingReset = None
+        if building:
+            self.building = building
+            if self._buildingReset:
+                self._buildingReset.cancel()
+            self._buildingReset = reactor.callLater(1, buildingReset)
+    def updatePosition(self, position, building):
+        self._updatePosition(position, building)
+        for o in self.observers: o.callRemote('updatePosition', position, building)
+    observe_updatePosition = _updatePosition
 
     def breakArmor(self, sides, resources):
         self.armor[resources].start(24)
@@ -241,6 +259,15 @@ class Building(pb.Cacheable, pb.RemoteCache):
     def observe_setResources(self, r):
         self.resources = r
 
+    def drawToolTip(self, view, tip, team = None):
+        offsets = {0 : Vector2D(0, 70),
+                   3 : Vector2D(0, 80),
+                   4 : Vector2D(0, 105),
+                   5 : Vector2D(0, 110)}
+        if tip == "Build" and self.isPolyFactory() and self.sides == self.resources:
+            tip = "Upgrade"
+        view.images.images[tip, self.team].draw(view.screen, view.screenCoord(self.position) - offsets[self.sides])
+
     def paint(self, view, position, isTeammate):
         if self.explosion:
            self.explosion.draw(view.screen, position)
@@ -259,11 +286,7 @@ class Building(pb.Cacheable, pb.RemoteCache):
             image = view.images.images["Building", self.resources].draw(view.screen, position)
 
         if not isTeammate:
-            offsets = {0 : Vector2D(0, 70),
-                       3 : Vector2D(0, 80),
-                       4 : Vector2D(0, 105),
-                       5 : Vector2D(0, 110)}
-            view.images.images["EnemyBuilding", self.team].draw(view.screen, position - offsets[self.sides])
+            self.drawToolTip(view, "EnemyBuilding")
 
     def getStateToCacheAndObserveFor(self, perspective, observer):
         self.observers.append(observer)
@@ -314,6 +337,9 @@ class ResourcePool(pb.Copyable, pb.RemoteCopy):
 
     def removeBuilder(self, player):
         pass
+
+    def drawToolTip(self, view, tip, team):
+        view.images.images["HarvestResources", team].draw(view.screen, view.screenCoord(self.position) - Vector2D(0, 110))
 
     def paint(self, view, position):
         view.images.images["resource_pool"].draw(view.screen, position)
