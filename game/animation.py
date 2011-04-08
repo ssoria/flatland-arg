@@ -1,7 +1,7 @@
 from twisted.internet.task import LoopingCall
 import pygame
-import numpy
 import itertools
+from vector import Vector2D
 
 def _loadImage(path):
     image = pygame.image.load(path)
@@ -17,17 +17,17 @@ class Image(object):
     def __init__(self, path, offset = (0,0)):
         if path:
             self.path = path.path
-        self.offset = numpy.array(offset)
+        self.offset = Vector2D(offset)
 
     def load(self):
         self._image = _loadImage(self.path)
         self._setCenter()
 
     def _setCenter(self):
-        self.center = numpy.array(self._image.get_rect().center)
+        self.center = Vector2D(self._image.get_rect().center)
 
     def draw(self, screen, position):
-        imagePosition = (position[0], position[1]) - self.center + self.offset
+        imagePosition = position - self.center + self.offset
         screen.blit(self._image, imagePosition)
 
     def drawScaled(self, screen, position, scale):
@@ -47,7 +47,7 @@ class Animation(Image):
             try:
                 self._images.append(_loadImage(self.path.format(i)))
                 i += 1
-            except Exception as e:
+            except Exception:
                 break
         self._image = self._images[0]
         self._setCenter()

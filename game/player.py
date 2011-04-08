@@ -1,6 +1,5 @@
 import math
 import pygame
-import pygame.gfxdraw
 from twisted.internet import defer
 from twisted.spread import pb
 from vector import Vector2D
