@@ -45,7 +45,7 @@ class Animation(Image):
         self._images = []
         while True:
             try:
-                self._images.append(_loadImage(self.path.format(i)))
+                self._images.append(_loadImage(self.path % (i, )))
                 i += 1
             except Exception:
                 break
