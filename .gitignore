@@ -5,3 +5,6 @@
 /*.egg
 /dist/
 /build/
+
+#ignore IDE files
+/.idea/
