@@ -1,2 +1,2 @@
-#!/Library/Frameworks/Python.framework/Versions/2.6/bin/python
+#!/usr/bin/python
 import game.chatclient
