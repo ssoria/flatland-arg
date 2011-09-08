@@ -60,7 +60,7 @@ class Window(object):
         self.screen.blit(background._image, Vector2D((0, 0)), pygame.Rect(center.x, center.y, 480, 800))
         self.environment.paint(self)
         if self.action:
-            self.action.draw(self.screen, (240, 400))
+            self.action.draw(self.screen, Vector2D((240, 400)))
         pygame.display.flip()
 
     def setCenter(self, position):
