@@ -48,6 +48,9 @@ class Vector2D(pb.Copyable, pb.RemoteCopy):
     def __str__(self):
         return str((self.x, self.y))
 
+    def __neg__(self):
+        return Vector2D((-self.x, -self.y))
+
     def norm(self):
         return Vector2D(self.x / self.length, self.y / self.length)
 

@@ -91,28 +91,19 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self.action = local
         for o in self.observers: o.callRemote('setAction', remote)
     def observe_setAction(self, action):
-        if action == "Building" and self.resources:
-            self.tooltip = self.images["SelfBuilding"].copy()
-            self.tooltip.start(12)
-        elif action == "Mining" and self.resources != self.sides:
-            self.tooltip = self.images["SelfMining"].copy()
-            self.tooltip.start(12)
-        else:
-            self.tooltip = None
+        # TODO Tooltips no longer used?
+        self.tooltip = None
 
     def _gainResource(self):
         if self.sides < 3:
             self.sides += 1
         elif self.resources < self.sides:
             self.resources += 1
-            animation = self.images["ArmorBreak", self.sides, self.resources].copy()
-            animation.startReversed(24)
-            self.armor[self.resources] = animation
     def gainResource(self):
         self._gainResource()
         for o in self.observers: o.callRemote('gainResource')
     observe_gainResource = _gainResource
-    
+
     def _loseResource(self):
         if self.resources:
             self.breakArmor(self.sides, self.resources)
@@ -133,7 +124,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
 
     def _updatePosition(self, position, building):
         self.position = position
-        # XXX only need this for self.self
+        # TODO only need this for self.self
         def buildingReset():
             self.building = None
             self._buildingReset = None
@@ -148,20 +139,17 @@ class Player(pb.Cacheable, pb.RemoteCache):
     observe_updatePosition = _updatePosition
 
     def breakArmor(self, sides, resources):
-        self.armor[resources].start(24)
+        # TODO nothing to do here?
+        pass
 
     def _hit(self):
         if self.resources:
             self.breakArmor(self.sides, self.resources)
             self.resources -= 1
         else:
-            # XXX Need other LevelDown animations
-            try:
-                animation = self.images["LevelDown", self.team, self.sides].copy()
-                animation.start(12).addCallback(lambda ign: self.topEvents.remove(animation))
-                self.topEvents.add(animation)
-            except:
-                pass
+            animation = self.images["LevelUp"].copy()
+            animation.startReversed(12).addCallback(lambda ign: self.topEvents.remove(animation))
+            self.topEvents.add(animation)
             self.sides -= 1
     def hit(self):
         self._hit()
@@ -172,28 +160,32 @@ class Player(pb.Cacheable, pb.RemoteCache):
         self.armor.clear()
         self.resources = 0
         self.sides += 1
+
+        animation = self.images["LevelUp"].copy()
+        animation.start(12).addCallback(lambda ign: self.topEvents.remove(animation))
+        self.topEvents.add(animation)
     def levelUp(self):
         self._levelUp()
         for o in self.observers: o.callRemote('levelUp')
     observe_levelUp = _levelUp
 
-    def paint(self, view, position, isTeammate):
-        # HACK player image deviates from center of screen occasionally
+    def paint(self, view, position, isTeammate, isVisible):
+        # TODO player image deviates from center of screen occasionally
         # likely caused by view.center being updated but not player.position
         # which must wait for the server to update its
         if self.self:
             position = Vector2D(240, 400)
-        # HACK save the view to get images
+        # TODO HACK save the view to get images
         self.images = view.images.images
 
-        if isTeammate and self.scanning:
+        if isVisible and self.scanning:
             view.images.images["PlayerScan"].drawScaled(view.screen, position, self.getScanRadius())
 
         for image in self.events:
             image.draw(view.screen, position)
 
-        if isTeammate:
-            image = view.images.images[("Player", self.self, self.team, self.sides)]
+        if isVisible:
+            image = view.images.images["Player", (self.self, isTeammate), self.sides]
             image.draw(view.screen, position)
             for image in self.topEvents:
                 image.draw(view.screen, position)
@@ -275,13 +267,8 @@ class Building(pb.Cacheable, pb.RemoteCache):
         self.resources = r
 
     def drawToolTip(self, view, tip, team = None):
-        offsets = {0 : Vector2D(0, 70),
-                   3 : Vector2D(0, 80),
-                   4 : Vector2D(0, 105),
-                   5 : Vector2D(0, 110)}
-        if tip == "Build" and self.isPolyFactory() and self.sides == self.resources:
-            tip = "Upgrade"
-        view.images.images[tip, self.team].draw(view.screen, view.screenCoord(self.position) - offsets[self.sides])
+        # TODO No more tool tips?
+        pass
 
     def paint(self, view, position, isTeammate):
         if self.explosion:
@@ -291,17 +278,11 @@ class Building(pb.Cacheable, pb.RemoteCache):
         if self.sides == 0 and self.resources == 0:
             return
 
-        if self.isSentry():
-            view.images.images["SentryOverlay"].draw(view.screen, position)
-
         if self.sides:
-            view.images.images["Building", self.sides].draw(view.screen, position)
-            view.images.images["BuildingHealth", self.team, self.sides, self.resources].draw(view.screen, position)
+            view.images.images["Building", self.sides, isTeammate].draw(view.screen, position)
+            view.images.images["BuildingHealth", isTeammate, self.sides, self.resources].draw(view.screen, position)
         else:
-            image = view.images.images["Building", self.resources].draw(view.screen, position)
-
-        if not isTeammate:
-            self.drawToolTip(view, "EnemyBuilding")
+            image = view.images.images["Building", self.resources, isTeammate].draw(view.screen, position)
 
     def getStateToCacheAndObserveFor(self, perspective, observer):
         self.observers.append(observer)
@@ -355,7 +336,8 @@ class ResourcePool(pb.Copyable, pb.RemoteCopy):
         pass
 
     def drawToolTip(self, view, tip, team):
-        view.images.images["HarvestResources", team].draw(view.screen, view.screenCoord(self.position) - Vector2D(0, 110))
+        # TODO No more tool tips?
+        pass
 
     def paint(self, view, position):
         view.images.images["resource_pool"].draw(view.screen, position)

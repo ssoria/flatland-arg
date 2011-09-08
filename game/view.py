@@ -28,7 +28,7 @@ def loadImage(path):
 class Window(object):
     def __init__(self, environment):
         self.environment = environment
-        self.images = Images(FilePath("data").child("images"))
+        self.images = Images(FilePath("data").child("img2"))
         self.images.load()
         self.actions = deque()
         self.action = None
@@ -55,12 +55,25 @@ class Window(object):
         Call C{paint} on all views which have been directly added to
         this Window.
         """
-        background = self.images.images["background"]
-        center = (Vector2D(background._image.get_rect().center) + self.center * 20) - Vector2D(240, 400)
-        self.screen.blit(background._image, Vector2D((0, 0)), pygame.Rect(center.x, center.y, 480, 800))
+        bg = self.images.images["background"]
+        bgWidth = bg.width
+        bgHeight = bg.height
+        x = -(self.center * 20).x
+        y = -(self.center * 20).y
+        while x > 0:
+            x -= bgWidth;
+        while y > 0:
+            y -= bgHeight
+        while x < 480:
+            j = y
+            while j < 800:
+                self.screen.blit(bg._image, pygame.Rect(x, j, bgWidth, bgHeight))
+                j += bgHeight
+            x += bgWidth
         self.environment.paint(self)
         if self.action:
-            self.action.draw(self.screen, Vector2D((240, 400)))
+         #   self.action.draw(self.screen, Vector2D((240, 400)))
+            pass
         pygame.display.flip()
 
     def setCenter(self, position):

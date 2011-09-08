@@ -82,7 +82,7 @@ class Environment(pb.Cacheable, pb.RemoteCache):
             action = "Building"
         player.setAction(action, LoopingCall(player.building.build, player))
         player.action.start(2, now=False)
-    
+
     def finishAction(self, player):
         if player.action:
             player.action.stop()
@@ -108,7 +108,7 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         if not building:
             if (self.rp.position - position) < 3:
                 building = self.rp
-        player.updatePosition(position, building)            
+        player.updatePosition(position, building)
 
         for b in self.buildings.itervalues():
             if b.isTrap() and (b.team != player.team) and ((b.position - player.position) < 1):
@@ -136,7 +136,7 @@ class Environment(pb.Cacheable, pb.RemoteCache):
 
     def paint(self, view):
         for b in self.buildings.itervalues():
-            # HACK save the view to get images
+            # TODO save the view to get images
             b.images = view.images.images
             if self.isVisible(b) or b.explosion:
                 b.paint(view, view.screenCoord(b.position), b.team == self.team)
@@ -144,7 +144,7 @@ class Environment(pb.Cacheable, pb.RemoteCache):
         for p in self.players.itervalues():
             if p.self and p.building:
                 p.building.drawToolTip(view, "Build", p.team)
-            p.paint(view, view.screenCoord(p.position), self.isVisible(p))
+            p.paint(view, view.screenCoord(p.position), self.team == p.team, self.isVisible(p))
 
     # pb.Cacheable stuff
     def getStateToCacheAndObserveFor(self, perspective, observer):

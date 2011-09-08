@@ -20,7 +20,7 @@ class Bootstrap(DatagramProtocol):
             self.port.stopListening()
             ip, port = address
             Client().connect(ip)
-            
+
 
 class Client():
     def connect(self, ip):

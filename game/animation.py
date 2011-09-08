@@ -5,7 +5,7 @@ from vector import Vector2D
 
 def _loadImage(path):
     image = pygame.image.load(path)
-    # XXX Are all of our images alpha'd now?
+    # TODO Are all of our images alpha'd now?
     if True:
         image = image.convert_alpha()
     else:
@@ -25,6 +25,7 @@ class Image(object):
 
     def _setCenter(self):
         self.center = Vector2D(self._image.get_rect().center)
+        self.width, self.height = self._image.get_rect().size
 
     def draw(self, screen, position):
         imagePosition = position - self.center + self.offset
