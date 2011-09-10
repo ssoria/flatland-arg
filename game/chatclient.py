@@ -6,7 +6,7 @@ import environment
 import player
 import vector
 from game.view import Window
-from game.controller import PlayerController
+from game.actions_keyboard import PlayerController
 from twisted.spread import pb
 from twisted.internet import defer
 from twisted.internet import reactor

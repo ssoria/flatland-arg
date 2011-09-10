@@ -1,7 +1,5 @@
-# -*- test-case-name: game.test.test_controller -*-
-
 """
-Input handling.
+Input handling via keyboard
 """
 
 from twisted.internet.task import LoopingCall
@@ -30,7 +28,7 @@ class PlayerController(object):
     @ivar downDirections: List of currently held arrow keys.
     """
     _actions = set([ATTACK, SCAN, BUILD, UPGRADE])
-    
+
     def __init__(self, perspective, view):
         self.perspective = perspective
         self.position = Vector2D(0, 0)
@@ -39,7 +37,7 @@ class PlayerController(object):
         self._actionQueue = []
         self._currentAction = None
 
- 
+
     def go(self):
         self.previousTime = pygame.time.get_ticks()
         self._inputCall = LoopingCall(self._handleInput)
@@ -114,7 +112,3 @@ class PlayerController(object):
 
         if (not self._currentAction) and self._actionQueue:
             self._startedAction(self._actionQueue.pop())
-
-
-
-
