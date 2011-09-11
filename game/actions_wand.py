@@ -137,7 +137,11 @@ class PlayerController(object):
             if self._sampleCnt == 2:
                 self._averageSampleData()
                 self._currentPattern = self._matchPattern()
-                self._actionQueue.append(self._currentPattern)
+
+                if self._currentPattern != self._currentAction:
+                    self._actionQueue.append(self._currentPattern)
+                    if self._currentAction:
+                        self._finishedAction();
 
         elif self._serialData[self.BUTTON] == 0 and self._currentPattern:
             self._actionQueue = []
@@ -147,20 +151,7 @@ class PlayerController(object):
             #this could cause problems with unreliable serial connection, need to test
             self._transitionAverages = self._initPattern(1)
 
-
-        if self._currentAction != None:
-            if len(self._actionQueue) >= self.JITTER_COUNT:
-                votes = 0
-                for i in range(0, self.JITTER_COUNT):
-                    if self._actionQueue[i] == self._currentAction:
-                        votes += 1
-                self._actionQueue.pop(0)
-
-                # User is doing something new
-                if votes < self.JITTER_VOTES:
-                    self._actionQueue = []
-                    self._finishedAction()
-        elif self._actionQueue:
+        if (not self._currentAction) and self._actionQueue:
             self._startedAction(self._actionQueue.pop())
 
     def _matchPattern(self):
