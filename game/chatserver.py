@@ -58,6 +58,26 @@ class GameAvatar(pb.Avatar):
         return self.environment
     def perspective_getTeam(self):
         return self.player.team
+    #TODO could we add a perspective_getPosition and perspective_getIRTargetStatus here
+    #TODO otherwise, how do we do remote call on a client?
+
+
+class TrackerPort(pb.Root):
+    def remote_echo(self, st):
+        print 'echoing: ', st
+        return st
+
+    def remote_lost_target(self, touch):
+        print 'this target was lost: ', touch
+
+    def remote_new_target(self, touch):
+        print 'this is a new target: ', touch
+
+    def remote_moved_target(self, touch):
+        print 'this is a moved target: ', touch
+
+
+
 
 pygame.init()
 pygame.display.set_mode((480, 800), pygame.DOUBLEBUF)
@@ -68,9 +88,15 @@ realm.environment = env
 view.start('Server')
 LoopingCall(lambda: pygame.event.pump()).start(0.03)
 
+tracker = TrackerPort()
+
 portal = portal.Portal(realm, [checkers.AllowAnonymousAccess()])
 
 reactor.listenTCP(8800, pb.PBServerFactory(portal))
+
+
+reactor.listenTCP(8789, pb.PBServerFactory(tracker))
+
 p = reactor.listenUDP(0, DatagramProtocol())
 LoopingCall(lambda: p.write("FlatlandARG!!!", ("224.0.0.1", 8000))).start(1)
 reactor.run()
