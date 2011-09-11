@@ -35,8 +35,8 @@ class Window(object):
         self.center = Vector2D((0,0))
 
     def addAction(self, action):
-        self.actions.append(self.images.images[action])
-        self.startAction()
+        # TODO We no longer have actions?
+        pass
 
     def startAction(self):
         if self.action == None:
