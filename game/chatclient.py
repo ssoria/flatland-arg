@@ -49,8 +49,11 @@ class Client():
 
 pygame.init()
 pygame.display.set_mode((480, 800), pygame.DOUBLEBUF)
-pygame.mixer.music.load("data/sfx/background.mp3")
-pygame.mixer.music.play(-1)
+
+# TODO: restore background music
+#pygame.mixer.music.load("data/sfx/background.mp3")
+#pygame.mixer.music.play(-1)
+
 bootstrap = Bootstrap()
 bootstrap.port = reactor.listenUDP(8000, bootstrap)
 reactor.run()
