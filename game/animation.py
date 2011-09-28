@@ -18,6 +18,7 @@ class Image(object):
         if path:
             self.path = path.path
         self.offset = Vector2D(offset)
+        self.degrees = None
 
     def load(self):
         self._image = _loadImage(self.path)
@@ -28,8 +29,14 @@ class Image(object):
         self.width, self.height = self._image.get_rect().size
 
     def draw(self, screen, position):
-        imagePosition = position - self.center + self.offset
-        screen.blit(self._image, imagePosition)
+
+        if self.degrees == None:
+            imagePosition = position - self.center + self.offset
+            screen.blit(self._image, imagePosition)
+        else:
+            imagePosition = position - self.center + self.offset
+            image = pygame.transform.rotate(self._image, float(self.degrees))
+            screen.blit(image, imagePosition)
 
     def drawScaled(self, screen, position, scale):
         center = self.center * scale
@@ -39,6 +46,9 @@ class Image(object):
 
     def copy(self):
         return self
+
+    def setRotation(self, degrees):
+        self.degrees = degrees
 
 class Animation(Image):
     def load(self):
