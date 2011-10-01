@@ -116,18 +116,9 @@ class Player(pb.Cacheable, pb.RemoteCache):
 
 
     def observe_setAction(self, action):
-FIXME
+        # TODO Tooltips no longer used?
+        self.tooltip = None
         self.actionName = action
-        if action == "Building" and self.resources:
-            self.tooltip = self.images["SelfBuilding"].copy()
-            self.tooltip.start(12)
-
-        elif action == "Mining" and self.resources != self.sides:
-            self.tooltip = self.images["SelfMining"].copy()
-            self.tooltip.start(12)
-        else:
-            self.tooltip = None
-FIXME
 
     def _gainResource(self, playSound = False):
         playResourceFullOk = False
@@ -137,12 +128,7 @@ FIXME
             self.sides += 1
         elif self.resources < self.sides:
             self.resources += 1
-FIXME
             actuallyGainResource = True
-            animation = self.images["ArmorBreak", self.sides, self.resources].copy()
-            animation.startReversed(24)
-            self.armor[self.resources] = animation
-
             playResourceFullOk = True
 
         if (playSound):
@@ -153,7 +139,6 @@ FIXME
                 pygame.mixer.Channel(7).stop()
                 if (playResourceFullOk):
                     pygame.mixer.Channel(7).play(pygame.mixer.Sound("data/sfx/alex_sfx/Points Full.ogg"))
-FIXME
 
     def gainResource(self):
         self._gainResource(playSound = True)
