@@ -221,7 +221,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
                         if buildingSideCount < 3:
                             buildingSideCount = 3
                         else:
-                        buildingSideCount = min(buildingSideCount + 1, 5)
+                            buildingSideCount = min(buildingSideCount + 1, 5)
 
                     if not pygame.mixer.Channel(7).get_busy():
                         pygame.mixer.Channel(7).play(pygame.mixer.Sound("data/sfx/alex_sfx/Building "+str(buildingSideCount)+"-sided.ogg"))

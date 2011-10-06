@@ -13,18 +13,23 @@ install_twisted_reactor()
 from twisted.internet import reactor
 from twisted.application import internet
 from twisted.internet import protocol
+from twisted.protocols.basic import LineReceiver
 import cPickle
 
 
-class TrackingClient(protocol.Protocol):
+class TrackingClient(LineReceiver):
     def connectionMade(self):
+        print "connected"
         self.factory.clients.append(self)
 
     def connectionLost(self, raisin):
         self.factory.clients.remove(self)
 
+    def lineReceived(self, line):
+        pass
+
     def send(self, msg):
-        self.transport.write(msg)
+        self.sendLine(msg)
 
 class Tracker(FloatLayout):
     def connect(self):
@@ -46,7 +51,7 @@ class Tracker(FloatLayout):
         reactor.listenTCP(1025, self.factory)
 
     def send(self, data):
-        msg = cPickle.dumps(data) + '\n'
+        msg = cPickle.dumps(data)
 
         for c in self.factory.clients:
             c.send(msg)
@@ -92,8 +97,6 @@ class Tracker(FloatLayout):
         width = (1 - field_percent) * self.width1 + field_percent * self.width2
         x = self.real_start_x + (self.real_width * ((touch.x - start_x) / width))
 
-        print (touch.x, touch.y)
-        print x, y
         return x, y
 
 
