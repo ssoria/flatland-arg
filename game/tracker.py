@@ -10,27 +10,21 @@ from math import sqrt
 
 from kivy.support import install_twisted_reactor
 install_twisted_reactor()
-from twisted.spread import pb
 from twisted.internet import reactor
+from twisted.application import internet
+from twisted.internet import protocol
+import cPickle
 
 
+class TrackingClient(protocol.Protocol):
+    def connectionMade(self):
+        self.factory.clients.append(self)
 
-def calculate_points(x1, y1, x2, y2, steps=5):
-    dx = x2 - x1
-    dy = y2 - y1
-    dist = sqrt(dx * dx + dy * dy)
-    if dist < steps:
-        return None
-    o = []
-    m = dist / steps
-    for i in xrange(1, int(m)):
-        mi = i / m
-        lastx = x1 + dx * mi
-        lasty = y1 + dy * mi
-        o.extend([lastx, lasty])
-    return o
+    def connectionLost(self, raisin):
+        self.factory.clients.remove(self)
 
-
+    def send(self, msg):
+        self.transport.write(msg)
 
 class Tracker(FloatLayout):
     def connect(self):
@@ -44,7 +38,18 @@ class Tracker(FloatLayout):
 
         self._ready = False;
         self._corners = [];
-        pass
+
+        self.factory = protocol.ServerFactory()
+        self.factory.protocol = TrackingClient
+        self.factory.clients = []
+
+        reactor.listenTCP(1025, self.factory)
+
+    def send(self, data):
+        msg = cPickle.dumps(data) + '\n'
+
+        for c in self.factory.clients:
+            c.send(msg)
 
     def _init_corner(self, touch):
         self._corners.append(touch)
@@ -112,9 +117,9 @@ class Tracker(FloatLayout):
                 pointsize = 5,
                 group=g)
 
-    def on_touch_move(self, touch):
-        return
+        self.send({'type': 'new', 'id': touch.uid, 'pos': (x, y)})
 
+    def on_touch_move(self, touch):
         if not self._ready:
             return
 
@@ -131,9 +136,15 @@ class Tracker(FloatLayout):
         except GraphicException:
             pass
 
+        self.send({'type': 'mov', 'id': touch.uid, 'pos': (x, y)})
+
+
     def on_touch_up(self, touch):
         ud = touch.ud
-        #self.canvas.remove_group(ud['group'])
+        self.canvas.remove_group(ud['group'])
+
+        self.send({'type': 'del', 'id': touch.uid})
+
 
     def update_touch_label(self, label, touch):
         label.text = 'ID: %s\nPos: (%d, %d)\nClass: %s' % (
