@@ -79,16 +79,91 @@ from twisted.protocols.basic import LineReceiver
 from twisted.internet import protocol
 import cPickle
 
+class PlayerBlob:
+    def __init__(self, id):
+        self.id = id
+        self.lights = []
+
+    def hasLight(self):
+        return len(self.lights) > 0
+
+    def addLight(self, light):
+        self.lights.append(light)
+        self.updatePosition()
+
+    def removeLight(self, light):
+        self.lights.remove(light)
+
+        if self.hasLight():
+            self.updatePosition()
+
+    def updatePosition(self):
+        x = 0
+        y = 0
+
+        for light in self.lights:
+            x += light.x
+            y += light.y
+
+        self.x = x / len(self.lights)
+        self.y = y / len(self.lights)
+
+        print (self.id, self.x, self.y)
+
+
+class Light:
+    def __init__(self, point, player):
+        self.id = point['id']
+        self.x = point['pos'][0]
+        self.y = point['pos'][1]
+
+        self.player = player
+        player.addLight(self)
+
+    def move(self, pos):
+        self.x = pos[0]
+        self.y = pos[1]
+
+        self.player.updatePosition()
+
+    def dispose(self):
+        self.player.removeLight(self)
+
 class TrackRecv(LineReceiver):
-    def connectionMade(self):
-        print "connected"
+    def __init__(self):
+        self.numPlayers = 2;
+
+        self.players = []
+        for i in range(self.numPlayers):
+            self.players.append(PlayerBlob(i))
+
+        self.lights = {}
+
+    def getEmptyPlayer(self):
+        for player in self.players:
+            if not player.hasLight():
+                return player
+
+    def process(self, point):
+        if point['type'] == 'new':
+            player = self.getEmptyPlayer()
+            self.lights[point['id']] = Light(point, player)
+        elif point['type'] == 'mov':
+            light = self.lights[point['id']]
+            light.move(point['pos'])
+        elif point['type'] == 'del':
+            light = self.lights[point['id']]
+            light.dispose()
+        else:
+            # unkown, do not process
+            return
 
     def lineReceived(self, line):
-        print "receive:", cPickle.loads(line)
+        self.process(cPickle.loads(line))
 
 tracker_factory = protocol.ClientFactory()
 tracker_factory.protocol = TrackRecv
-reactor.connectTCP("localhost", 1025, tracker_factory)
+reactor.connectTCP("127.0.0.1", 1025, tracker_factory)
 
 
 p = reactor.listenUDP(0, DatagramProtocol())
