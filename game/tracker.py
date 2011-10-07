@@ -30,11 +30,12 @@ class TrackingClient(LineReceiver):
 
 class Tracker(FloatLayout):
     def connect(self):
+        self.numCorners = 0
         win = self.get_parent_window()
-        self.real_start_x = 0
-        self.real_start_y = 0
-        self.real_height = 480
-        self.real_width = 800
+        self.real_start_x = -24
+        self.real_start_y = -40
+        self.real_height = 48
+        self.real_width = 80
 
         print self.real_height, self.real_width
 
@@ -54,7 +55,8 @@ class Tracker(FloatLayout):
     def _init_corner(self, touch):
         print len(self._corners)
         self._corners.append(touch)
-        if len(self._corners) == 4:
+        self.numCorners += 1
+        if self.numCorners == 4:
             self._init_keystone()
             self._ready = True
 
@@ -95,6 +97,18 @@ class Tracker(FloatLayout):
 
         return x, y
 
+    def isCorner(self, touch):
+        def dist2(t1, t2):
+            dx = t1.x - t2.x
+            dy = t1.y - t2.y
+            return dx*dx + dy * dy
+
+        for c in self._corners:
+            if dist2(c, touch) < 500:
+                self._corners.remove(c)
+                return True
+
+        return False
 
     def on_touch_down(self, touch):
         ud = touch.ud
@@ -104,7 +118,12 @@ class Tracker(FloatLayout):
             self._init_corner(touch)
             return;
 
+        if self.numCorners != 4 and self.isCorner(touch):
+            self._init_corner(touch)
+            return
+
         x, y = self.rectify(touch)
+        print x, y
 
         ud = touch.ud
         ud['group'] = g = str(touch.uid)
@@ -140,6 +159,7 @@ class Tracker(FloatLayout):
 
     def on_touch_up(self, touch):
         if touch in self._corners:
+            self.numCorners -= 1
             return
 
         ud = touch.ud

@@ -113,7 +113,8 @@ class PlayerBlob:
         dx = self.x - startX
         dy = self.y - startY
 
-        env.updatePlayerPosition(self.player, Vector2D(startX + dx / 2, startY + dy / 2))
+        self.player.position = Vector2D(startX + dx / 2, startY + dy / 2)
+        #env.updatePlayerPosition(self.player, Vector2D(startX + dx / 2, startY + dy / 2))
 
         print (startX, startY)
 
