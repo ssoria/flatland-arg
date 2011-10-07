@@ -112,19 +112,25 @@ class PlayerBlob:
 
 
 class Light:
-    def __init__(self, point, player):
+    def __init__(self, point):
         self.id = point['id']
         self.x = point['pos'][0]
         self.y = point['pos'][1]
 
-        self.player = player
-        player.addLight(self)
+        self.player = None
 
     def move(self, pos):
         self.x = pos[0]
         self.y = pos[1]
 
         self.player.updatePosition()
+
+    def setPlayer(self, player):
+        if self.player:
+            self.player.removeLight(self)
+
+        self.player = player
+        player.addLight(self)
 
     def dispose(self):
         self.player.removeLight(self)
@@ -146,8 +152,11 @@ class TrackRecv(LineReceiver):
 
     def process(self, point):
         if point['type'] == 'new':
+            light = Light(point)
+            self.lights[point['id']] = light
+
             player = self.getEmptyPlayer()
-            self.lights[point['id']] = Light(point, player)
+            light.setPlayer(player)
         elif point['type'] == 'mov':
             light = self.lights[point['id']]
             light.move(point['pos'])
@@ -161,9 +170,9 @@ class TrackRecv(LineReceiver):
     def lineReceived(self, line):
         self.process(cPickle.loads(line))
 
-tracker_factory = protocol.ClientFactory()
+tracker_factory = protocol.ServerFactory()
 tracker_factory.protocol = TrackRecv
-reactor.connectTCP("127.0.0.1", 1025, tracker_factory)
+reactor.listenTCP(1025, tracker_factory)
 
 
 p = reactor.listenUDP(0, DatagramProtocol())
