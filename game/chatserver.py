@@ -11,6 +11,9 @@ from twisted.internet import reactor
 from twisted.spread import pb
 from twisted.internet.protocol import DatagramProtocol
 
+MAX_DISTANCE2 = 100
+MAX_SPEED = 10
+
 class GameRealm:
     implements(portal.IRealm)
 
@@ -34,6 +37,7 @@ class GameAvatar(pb.Avatar):
     def __init__(self, environment, team):
         self.environment = environment
         self.player = self.environment.createPlayer(team)
+        tracker_factory.client.addPlayer(self.player)
     def disconnect(self):
         self.environment.removePlayer(self.player)
     def perspective_startAttacking(self):
@@ -80,9 +84,13 @@ from twisted.internet import protocol
 import cPickle
 
 class PlayerBlob:
-    def __init__(self, id):
+    def __init__(self, player):
         self.id = id
         self.lights = []
+        self.x = -1
+        self.y = -1
+
+        LoopingCall(self._updatePlayer).start(0.03)
 
     def hasLight(self):
         return len(self.lights) > 0
@@ -97,6 +105,17 @@ class PlayerBlob:
         if self.hasLight():
             self.updatePosition()
 
+    def _updatePlayer(self):
+        pass
+
+        startX = self.player.position.x
+        startY = self.player.position.y
+
+        dx = self.x - startX
+        dy = self.y - startY
+
+        self.environment.updatePlayerPosition(self.player, Vector2D(startX + dx / 2, startY + dy / 2))
+
     def updatePosition(self):
         x = 0
         y = 0
@@ -108,7 +127,15 @@ class PlayerBlob:
         self.x = x / len(self.lights)
         self.y = y / len(self.lights)
 
-        print (self.id, self.x, self.y)
+        print (self.x, self.y)
+
+    def blink(self):
+        for light in self.lights:
+            light.player = None
+
+        self.lights = []
+        # TODO
+        #self.player.blink()
 
 
 class Light:
@@ -120,6 +147,9 @@ class Light:
         self.player = None
 
     def move(self, pos):
+        if self.player == None:
+            return
+
         self.x = pos[0]
         self.y = pos[1]
 
@@ -133,7 +163,11 @@ class Light:
         player.addLight(self)
 
     def dispose(self):
+        if self.player == None:
+            return
         self.player.removeLight(self)
+
+import random
 
 class TrackRecv(LineReceiver):
     def __init__(self):
@@ -143,20 +177,52 @@ class TrackRecv(LineReceiver):
         for i in range(self.numPlayers):
             self.players.append(PlayerBlob(i))
 
+        self.blinkingPlayer = self.players[0]
+
         self.lights = {}
 
-    def getEmptyPlayer(self):
+    def connectionMade(self):
+        print "connected"
+        self.factory.client = self
+
+    def findNearestPlayer(self, light):
+        min = None
+        minPlayer = None
         for player in self.players:
             if not player.hasLight():
-                return player
+                minPlayer = player
+
+            dx = player.x - light.x
+            dy = player.y - light.y
+            distanceSquared = dx*dx + dy*dy
+            if distanceSquared < MAX_DISTANCE2:
+                if min == None or distanceSquared < min:
+                    minPlayer = player
+                    min = distanceSquared
+
+        return minPlayer
+
+    def blinkNextPlayer(self):
+        self.blinkingPlayer = None
+
+        for p in self.players:
+            if not p.hasLight():
+                self.blinkingPlayer = p
+                break
+
+        if self.blinkingPlayer == None:
+            self.blinkingPlayer = random.choice(self.players)
+
+        self.blinkingPlayer.blink()
 
     def process(self, point):
         if point['type'] == 'new':
             light = Light(point)
             self.lights[point['id']] = light
 
-            player = self.getEmptyPlayer()
-            light.setPlayer(player)
+            light.setPlayer(self.blinkingPlayer)
+            self.blinkNextPlayer()
+
         elif point['type'] == 'mov':
             light = self.lights[point['id']]
             light.move(point['pos'])
@@ -169,6 +235,9 @@ class TrackRecv(LineReceiver):
 
     def lineReceived(self, line):
         self.process(cPickle.loads(line))
+
+    def addPlayer(self, player):
+        pass
 
 tracker_factory = protocol.ServerFactory()
 tracker_factory.protocol = TrackRecv
