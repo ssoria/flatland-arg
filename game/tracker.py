@@ -31,10 +31,10 @@ class TrackingClient(LineReceiver):
 class Tracker(FloatLayout):
     def connect(self):
         win = self.get_parent_window()
-        self.real_start_x = 10
-        self.real_start_y = 10
-        self.real_height = self.height - 20
-        self.real_width = self.width - 20
+        self.real_start_x = 0
+        self.real_start_y = 0
+        self.real_height = 480
+        self.real_width = 800
 
         print self.real_height, self.real_width
 
@@ -52,6 +52,7 @@ class Tracker(FloatLayout):
         self.factory.client.send(msg)
 
     def _init_corner(self, touch):
+        print len(self._corners)
         self._corners.append(touch)
         if len(self._corners) == 4:
             self._init_keystone()

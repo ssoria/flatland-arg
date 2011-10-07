@@ -212,7 +212,7 @@ class Player(pb.Cacheable, pb.RemoteCache):
             self._buildingReset = reactor.callLater(1, buildingReset)
 
             if (playSound):
-                if self.buildin.sides and self.actionName == 'Building':
+                if hasattr(self.building, 'sides') and self.building.sides and self.actionName == 'Building':
                     if self.resources == 0:
                         pygame.mixer.Channel(7).stop()
 
